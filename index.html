@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>すどう家 まなびクイズ</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --kanako-color: #e91e8c;
+  --tomohiro-color: #2196f3;
+  --hikari-color: #ff9800;
+  --correct-color: #4caf50;
+  --wrong-color: #f44336;
+}
+
+body {
+  font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  background: #f0f4f8;
+  min-height: 100vh;
+}
+
+/* ===== プロフィール選択画面 ===== */
+#profile-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#profile-screen h1 {
+  font-size: 2em;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+#profile-screen .subtitle {
+  font-size: 1em;
+  color: #888;
+  margin-bottom: 40px;
+}
+
+.profile-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.profile-card {
+  width: 200px;
+  padding: 30px 20px;
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.profile-card .emoji { font-size: 3em; margin-bottom: 10px; }
+.profile-card .name { font-size: 1.5em; font-weight: bold; }
+.profile-card .grade { font-size: 0.9em; margin-top: 5px; opacity: 0.9; }
+.profile-card .streak { font-size: 0.8em; margin-top: 10px; opacity: 0.8; }
+
+.card-sudo { background: linear-gradient(135deg, #607d8b, #37474f); }
+.card-kanako { background: linear-gradient(135deg, #e91e8c, #c2185b); }
+.card-tomohiro { background: linear-gradient(135deg, #2196f3, #1565c0); }
+.card-hikari { background: linear-gradient(135deg, #ff9800, #ef6c00); }
+
+/* ===== メニュー画面 ===== */
+#menu-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.menu-header {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.menu-header h2 { font-size: 1.8em; color: #333; }
+.menu-header .stats { color: #666; margin-top: 5px; }
+
+.menu-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+.menu-item {
+  width: 170px;
+  padding: 25px 15px;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.menu-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.menu-item .menu-emoji { font-size: 2.5em; margin-bottom: 8px; }
+.menu-item .menu-title { font-size: 1.1em; font-weight: bold; color: #333; }
+.menu-item .menu-desc { font-size: 0.8em; color: #888; margin-top: 5px; }
+.menu-item .menu-progress { font-size: 0.75em; color: #4caf50; margin-top: 8px; font-weight: bold; }
+
+.back-btn {
+  margin-top: 30px;
+  padding: 10px 30px;
+  border: 2px solid #ccc;
+  background: white;
+  border-radius: 25px;
+  font-size: 1em;
+  cursor: pointer;
+  color: #666;
+}
+
+.back-btn:hover { border-color: #999; color: #333; }
+
+/* ===== クイズ画面 ===== */
+#quiz-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.quiz-top-bar {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.quiz-category {
+  font-size: 0.9em;
+  color: #888;
+  font-weight: bold;
+}
+
+.quiz-score {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.quiz-exit {
+  padding: 5px 15px;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.quiz-progress-bar {
+  width: 100%;
+  max-width: 500px;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.quiz-progress-fill {
+  height: 100%;
+  background: var(--correct-color);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.quiz-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  max-width: 500px;
+  width: 100%;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.quiz-question-label {
+  font-size: 0.85em;
+  color: #aaa;
+  margin-bottom: 15px;
+}
+
+.quiz-question {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 25px;
+  line-height: 1.4;
+}
+
+.quiz-question.large {
+  font-size: 3em;
+}
+
+.quiz-hint {
+  font-size: 0.9em;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.quiz-input-area {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 350px;
+}
+
+.quiz-input {
+  flex: 1;
+  padding: 12px 18px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  font-size: 1.2em;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.quiz-input:focus { border-color: #2196f3; }
+
+.quiz-submit {
+  padding: 12px 25px;
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1em;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.quiz-submit:hover { background: #1976d2; }
+
+/* フィードバック */
+.quiz-feedback {
+  display: none;
+  margin-top: 20px;
+  padding: 15px 25px;
+  border-radius: 12px;
+  font-size: 1.1em;
+  font-weight: bold;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.quiz-feedback.correct {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.quiz-feedback.wrong {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.quiz-next {
+  display: none;
+  margin-top: 15px;
+  padding: 12px 40px;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+/* ===== 結果画面 ===== */
+#result-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.result-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  max-width: 450px;
+  width: 100%;
+}
+
+.result-emoji { font-size: 4em; margin-bottom: 15px; }
+.result-title { font-size: 1.8em; color: #333; margin-bottom: 10px; }
+.result-score { font-size: 1.2em; color: #666; margin-bottom: 20px; }
+
+.result-details {
+  text-align: left;
+  margin: 20px 0;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 10px;
+}
+
+.result-details p {
+  margin: 5px 0;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.result-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.result-btn {
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-size: 1em;
+  cursor: pointer;
+  font-weight: bold;
+  border: none;
+}
+
+.result-btn.primary { background: #2196f3; color: white; }
+.result-btn.secondary { background: #e0e0e0; color: #333; }
+
+/* ===== 選択肢ボタン ===== */
+.quiz-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 10px;
+}
+
+.choice-btn {
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 12px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.choice-btn:hover { border-color: #2196f3; background: #e3f2fd; }
+.choice-btn.selected-correct { border-color: #4caf50; background: #e8f5e9; }
+.choice-btn.selected-wrong { border-color: #f44336; background: #ffebee; }
+.choice-btn.show-correct { border-color: #4caf50; background: #e8f5e9; }
+
+/* ===== 複数選択 ===== */
+.quiz-choices.multi-select .choice-btn.selected {
+  border-color: #2196f3;
+  background: #e3f2fd;
+}
+
+.multi-submit-btn {
+  margin-top: 10px;
+  padding: 12px 40px;
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 1em;
+  cursor: pointer;
+  font-weight: bold;
+  grid-column: 1 / -1;
+}
+
+.multi-submit-btn:hover { background: #1976d2; }
+
+/* ===== 数字読み方クイズ ===== */
+.number-display {
+  font-size: 3em;
+  font-weight: bold;
+  color: #333;
+  margin: 20px 0;
+}
+
+.number-reading {
+  font-size: 1.5em;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 15px 25px;
+  border-radius: 12px;
+  margin: 15px 0;
+}
+
+.self-assess-btn {
+  padding: 15px 30px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 12px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 5px;
+}
+
+.self-assess-btn.correct:hover { border-color: #4caf50; background: #e8f5e9; }
+.self-assess-btn.retry:hover { border-color: #ff9800; background: #fff3e0; }
+
+/* レスポンシブ */
+@media (max-width: 600px) {
+  .profile-cards { flex-direction: column; align-items: center; }
+  .profile-card { width: 250px; }
+  .quiz-question { font-size: 1.6em; }
+  .quiz-question.large { font-size: 2.5em; }
+  .menu-item { width: 140px; }
+}
+</style>
+</head>
+<body>
+
+<!-- プロフィール選択 -->
+<div id="profile-screen">
+  <h1>すどう家 まなびクイズ</h1>
+  <p class="subtitle">だれがやる？</p>
+  <div class="profile-cards">
+    <div class="profile-card card-sudo" onclick="selectProfile('sudo')">
+      <div class="emoji">&#128188;</div>
+      <div class="name">お父さん</div>
+      <div class="grade">OLTA業務知識</div>
+      <div class="streak" id="streak-sudo"></div>
+    </div>
+    <div class="profile-card card-kanako" onclick="selectProfile('kanako')">
+      <div class="emoji">&#127800;</div>
+      <div class="name">加奈子</div>
+      <div class="grade">中学1年生</div>
+      <div class="streak" id="streak-kanako"></div>
+    </div>
+    <div class="profile-card card-tomohiro" onclick="selectProfile('tomohiro')">
+      <div class="emoji">&#9917;</div>
+      <div class="name">友博</div>
+      <div class="grade">小学4年生</div>
+      <div class="streak" id="streak-tomohiro"></div>
+    </div>
+    <div class="profile-card card-hikari" onclick="selectProfile('hikari')">
+      <div class="emoji">&#127752;</div>
+      <div class="name">ひかり</div>
+      <div class="grade">小学1年生</div>
+      <div class="streak" id="streak-hikari"></div>
+    </div>
+  </div>
+</div>
+
+<!-- メニュー -->
+<div id="menu-screen">
+  <div class="menu-header">
+    <h2 id="menu-title"></h2>
+    <p class="stats" id="menu-stats"></p>
+  </div>
+  <div class="menu-grid" id="menu-grid"></div>
+  <button class="back-btn" onclick="showScreen('profile')">もどる</button>
+</div>
+
+<!-- クイズ -->
+<div id="quiz-screen">
+  <div class="quiz-top-bar">
+    <span class="quiz-category" id="quiz-category"></span>
+    <span class="quiz-score" id="quiz-score"></span>
+    <button class="quiz-exit" onclick="endQuiz()">やめる</button>
+  </div>
+  <div class="quiz-progress-bar">
+    <div class="quiz-progress-fill" id="quiz-progress"></div>
+  </div>
+  <div class="quiz-card">
+    <p class="quiz-question-label" id="quiz-label"></p>
+    <p class="quiz-question" id="quiz-question"></p>
+    <p class="quiz-hint" id="quiz-hint"></p>
+    <div id="quiz-input-container">
+      <div class="quiz-input-area" id="quiz-input-area">
+        <input class="quiz-input" id="quiz-input" type="text" autocomplete="off"
+               placeholder="こたえを入力" onkeydown="if(event.key==='Enter')submitAnswer()">
+        <button class="quiz-submit" onclick="submitAnswer()">OK</button>
+      </div>
+      <div class="quiz-choices" id="quiz-choices" style="display:none"></div>
+    </div>
+  </div>
+  <div class="quiz-feedback" id="quiz-feedback"></div>
+  <button class="quiz-next" id="quiz-next" onclick="nextQuestion()">つぎへ</button>
+</div>
+
+<!-- 結果 -->
+<div id="result-screen">
+  <div class="result-card">
+    <div class="result-emoji" id="result-emoji"></div>
+    <h2 class="result-title" id="result-title"></h2>
+    <p class="result-score" id="result-score"></p>
+    <div class="result-details" id="result-details"></div>
+    <div class="result-buttons">
+      <button class="result-btn primary" onclick="startQuiz(currentCategory)">もういちど</button>
+      <button class="result-btn secondary" onclick="showMenu()">メニューへ</button>
+    </div>
+  </div>
+</div>
+
+<script src="data/kanji.js"></script>
+<script src="data/prefectures.js"></script>
+<script src="data/math.js"></script>
+<script src="data/reading.js"></script>
+<script src="data/olta.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
