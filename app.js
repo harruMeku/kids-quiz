@@ -22,6 +22,7 @@ const PROFILES = {
       { id: "kanji_56", emoji: "&#128221;", title: "漢字（5・6年）", desc: "高学年の漢字", type: "kanji", grades: [5,6] },
       { id: "kanji_34", emoji: "&#9999;", title: "漢字（3・4年）", desc: "中学年の漢字", type: "kanji", grades: [3,4] },
       { id: "prefecture", emoji: "&#128510;", title: "都道府県", desc: "47都道府県", type: "prefecture" },
+      { id: "kaguya", emoji: "💕", title: "かぐや様は告らせたい", desc: "漫画クイズ", type: "kaguya" },
     ]
   },
   tomohiro: {
@@ -188,7 +189,7 @@ function showMenu() {
 
     const srData = getSRData(currentProfile, cat.id);
     const totalItems = countCategoryItems(cat);
-    const masteredCount = Object.values(srData).filter(s => s.correct >= 3 && s.weight < 0.5).length;
+    const masteredCount = Object.values(srData).filter(s => s.correct >= 2 && s.weight < 0.8).length;
     const progressText = totalItems > 0 ? `${masteredCount} / ${totalItems} マスター` : '';
 
     div.innerHTML = `
@@ -218,6 +219,10 @@ function countCategoryItems(cat) {
     }
     return (OLTA_QUIZ[cat.oltaCategory] || []).length;
   }
+  if (cat.type === 'kaguya') {
+    if (typeof KAGUYA_QUIZ === 'undefined') return 0;
+    return Object.values(KAGUYA_QUIZ).reduce((sum, arr) => sum + arr.length, 0);
+  }
   if (cat.type === 'numberReading') return 0; // infinite
   return 0; // math is infinite
 }
@@ -245,6 +250,7 @@ function generateQuestions(category) {
     case 'reading': return generateReadingQuestions(category);
     case 'olta': return generateOltaQuestions(category);
     case 'numberReading': return generateNumberReadingQuestions(category);
+    case 'kaguya': return generateKaguyaQuestions(category);
     default: return [];
   }
 }
@@ -565,6 +571,71 @@ function normalizeAnswer(s) {
     .toLowerCase();
 }
 
+// --- かぐや様は告らせたい クイズ生成 ---
+function generateKaguyaQuestions(category) {
+  if (typeof KAGUYA_QUIZ === 'undefined') return [];
+
+  // 全カテゴリから問題をプール
+  let pool = [];
+  Object.entries(KAGUYA_QUIZ).forEach(([cat, items]) => {
+    items.forEach((item, i) => {
+      pool.push({ ...item, name: `kaguya_${cat}_${i}`, _cat: cat });
+    });
+  });
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+
+  return selected.map(s => {
+    const item = s.item;
+
+    // キャラクター識別問題（アバター付き）
+    if (item.avatar && KAGUYA_AVATARS[item.avatar]) {
+      const avatarSvg = KAGUYA_AVATARS[item.avatar];
+      // 選択肢がない場合（役職問題など）は自前で生成
+      const choices = item.choices || generateChoices(item.a, KAGUYA_CHARACTER_NAMES, 4);
+      return {
+        type: 'choice',
+        id: s.id,
+        label: KAGUYA_CATEGORIES[item._cat]?.name || 'かぐや様クイズ',
+        question: item.q,
+        questionHtml: `<div style="margin-bottom:10px;">${avatarSvg}</div><div>${item.q}</div>`,
+        answer: item.a,
+        hint: item.hint || '',
+        explanation: item.explanation || '',
+        choices: choices,
+        display: ''
+      };
+    }
+
+    // 選択肢問題
+    if (item.choices) {
+      return {
+        type: 'choice',
+        id: s.id,
+        label: KAGUYA_CATEGORIES[item._cat]?.name || 'かぐや様クイズ',
+        question: item.q,
+        answer: item.a,
+        hint: item.hint || '',
+        explanation: item.explanation || '',
+        choices: generateChoices(item.a, item.choices, item.choices.length),
+        display: ''
+      };
+    }
+
+    // フォールバック（入力式）
+    return {
+      type: 'input',
+      id: s.id,
+      label: KAGUYA_CATEGORIES[item._cat]?.name || 'かぐや様クイズ',
+      question: item.q,
+      answer: item.a,
+      hint: item.hint || '',
+      explanation: item.explanation || '',
+      display: ''
+    };
+  });
+}
+
 // --- OLTA クイズ生成 ---
 function generateOltaQuestions(category) {
   if (typeof OLTA_QUIZ === 'undefined') return [];
@@ -734,10 +805,13 @@ function generatePrefectureVariety(category) {
 
   selected.forEach((s, idx) => {
     // Randomly pick a question type for variety
-    const types = ['capital', 'region', 'kanji'];
+    const types = ['capital', 'region'];
     // Add adjacency and feature types if data exists
     if (s.item.neighbors && s.item.neighbors.length > 0) types.push('adjacency');
-    if (s.item.features && s.item.features.length > 0) types.push('feature');
+    if (s.item.features && s.item.features.length > 0) {
+      types.push('feature');
+      types.push('feature'); // 名物クイズの出現率を上げる
+    }
 
     const type = types[Math.floor(Math.random() * types.length)];
 

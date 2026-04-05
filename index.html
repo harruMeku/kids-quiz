@@ -431,6 +431,13 @@ body {
 .self-assess-btn.correct:hover { border-color: #4caf50; background: #e8f5e9; }
 .self-assess-btn.retry:hover { border-color: #ff9800; background: #fff3e0; }
 
+/* ===== かぐや様キャラアバター ===== */
+.quiz-card svg {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fce4ec, #f3e5f5);
+}
+
 /* レスポンシブ */
 @media (max-width: 600px) {
   .profile-cards { flex-direction: column; align-items: center; }
@@ -531,6 +538,7 @@ body {
 <script src="data/math.js"></script>
 <script src="data/reading.js"></script>
 <script src="data/olta.js"></script>
+<script src="data/kaguya.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
