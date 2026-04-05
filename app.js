@@ -23,6 +23,8 @@ const PROFILES = {
       { id: "kanji_34", emoji: "&#9999;", title: "漢字（3・4年）", desc: "中学年の漢字", type: "kanji", grades: [3,4] },
       { id: "prefecture", emoji: "&#128510;", title: "都道府県", desc: "47都道府県", type: "prefecture" },
       { id: "kaguya", emoji: "💕", title: "かぐや様は告らせたい", desc: "漫画クイズ", type: "kaguya" },
+      { id: "reading_k", emoji: "📚", title: "よみもの", desc: "読んで考えよう", type: "reading_kanako" },
+      { id: "books_k", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "kanako" },
     ]
   },
   tomohiro: {
@@ -34,6 +36,8 @@ const PROFILES = {
       { id: "math_div", emoji: "&#10135;", title: "わり算", desc: "わりきれる問題", type: "math", mathType: "division" },
       { id: "kanji_123", emoji: "&#128209;", title: "漢字（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3] },
       { id: "map_symbol", emoji: "&#128506;", title: "地図記号", desc: "地図記号をおぼえよう", type: "mapSymbol" },
+      { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro" },
+      { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro" },
     ]
   },
   hikari: {
@@ -46,6 +50,7 @@ const PROFILES = {
       { id: "reading", emoji: "&#128214;", title: "よみとり", desc: "おはなしを よんで こたえよう", type: "reading" },
       { id: "number_reading", emoji: "&#128290;", title: "よんけたの かず", desc: "おおきな かずを よんでみよう", type: "numberReading" },
       { id: "pippi", emoji: "🧡", title: "ながくつ下のピッピ", desc: "ピッピ だいすき！", type: "pippi" },
+      { id: "books_h", emoji: "📚", title: "おすすめの ほん", desc: "つぎは なにを よもう？", type: "bookRecommendation", bookProfile: "hikari" },
     ]
   }
 };
@@ -144,7 +149,7 @@ function saveSessionStats(profile, correct, total) {
 
 // --- 画面制御 ---
 function showScreen(name) {
-  ['profile-screen', 'menu-screen', 'quiz-screen', 'result-screen'].forEach(id => {
+  ['profile-screen', 'menu-screen', 'quiz-screen', 'result-screen', 'books-screen'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
   document.getElementById(`${name}-screen`).style.display = 'flex';
@@ -186,12 +191,19 @@ function showMenu() {
   profile.categories.forEach(cat => {
     const div = document.createElement('div');
     div.className = 'menu-item';
-    div.onclick = () => startQuiz(cat);
+    div.onclick = () => cat.type === 'bookRecommendation' ? showBooks(cat) : startQuiz(cat);
 
-    const srData = getSRData(currentProfile, cat.id);
-    const totalItems = countCategoryItems(cat);
-    const masteredCount = Object.values(srData).filter(s => s.correct >= 2 && s.weight < 0.8).length;
-    const progressText = totalItems > 0 ? `${masteredCount} / ${totalItems} マスター` : '';
+    let progressText = '';
+    if (cat.type === 'bookRecommendation') {
+      const readBooks = getReadBooks(cat.bookProfile);
+      const totalBooks = (typeof BOOK_DATA !== 'undefined' && BOOK_DATA[cat.bookProfile]) ? BOOK_DATA[cat.bookProfile].length : 0;
+      if (totalBooks > 0) progressText = `${readBooks.length} / ${totalBooks} さつ よんだ！`;
+    } else {
+      const srData = getSRData(currentProfile, cat.id);
+      const totalItems = countCategoryItems(cat);
+      const masteredCount = Object.values(srData).filter(s => s.correct >= 2 && s.weight < 0.8).length;
+      progressText = totalItems > 0 ? `${masteredCount} / ${totalItems} マスター` : '';
+    }
 
     div.innerHTML = `
       <div class="menu-emoji">${cat.emoji}</div>
@@ -213,6 +225,8 @@ function countCategoryItems(cat) {
   if (cat.type === 'prefecture') return typeof PREFECTURE_DATA !== 'undefined' ? PREFECTURE_DATA.length : 0;
   if (cat.type === 'mapSymbol') return typeof MAP_SYMBOL_DATA !== 'undefined' ? MAP_SYMBOL_DATA.length : 0;
   if (cat.type === 'reading') return typeof READING_DATA !== 'undefined' ? READING_DATA.length : 0;
+  if (cat.type === 'reading_tomohiro') return typeof READING_TOMOHIRO_DATA !== 'undefined' ? READING_TOMOHIRO_DATA.length : 0;
+  if (cat.type === 'reading_kanako') return typeof READING_KANAKO_DATA !== 'undefined' ? READING_KANAKO_DATA.length : 0;
   if (cat.type === 'olta') {
     if (typeof OLTA_QUIZ === 'undefined') return 0;
     if (cat.oltaCategory === 'all') {
@@ -253,6 +267,8 @@ function generateQuestions(category) {
     case 'prefecture': return generatePrefectureQuestions(category);
     case 'mapSymbol': return generateMapSymbolQuestions(category);
     case 'reading': return generateReadingQuestions(category);
+    case 'reading_tomohiro': return generateReadingTomohiroQuestions(category);
+    case 'reading_kanako': return generateReadingKanakoQuestions(category);
     case 'olta': return generateOltaQuestions(category);
     case 'numberReading': return generateNumberReadingQuestions(category);
     case 'kaguya': return generateKaguyaQuestions(category);
@@ -329,6 +345,34 @@ function generateReadingQuestions(category) {
     type: 'choice',
     id: `reading_${s.id}`,
     label: 'よみとりクイズ',
+    question: s.item.text + '\n\n' + s.item.question,
+    answer: s.item.answer,
+    choices: s.item.choices,
+    display: ''
+  }));
+}
+
+function generateReadingTomohiroQuestions(category) {
+  if (typeof READING_TOMOHIRO_DATA === 'undefined') return [];
+  const selected = weightedSelect(READING_TOMOHIRO_DATA, currentProfile, category.id, Math.min(QUESTIONS_PER_ROUND, READING_TOMOHIRO_DATA.length));
+  return selected.map(s => ({
+    type: 'choice',
+    id: `reading_t_${s.id}`,
+    label: 'よみものクイズ',
+    question: s.item.text + '\n\n' + s.item.question,
+    answer: s.item.answer,
+    choices: s.item.choices,
+    display: ''
+  }));
+}
+
+function generateReadingKanakoQuestions(category) {
+  if (typeof READING_KANAKO_DATA === 'undefined') return [];
+  const selected = weightedSelect(READING_KANAKO_DATA, currentProfile, category.id, Math.min(QUESTIONS_PER_ROUND, READING_KANAKO_DATA.length));
+  return selected.map(s => ({
+    type: 'choice',
+    id: `reading_k_${s.id}`,
+    label: 'よみものクイズ',
     question: s.item.text + '\n\n' + s.item.question,
     answer: s.item.answer,
     choices: s.item.choices,
@@ -1063,10 +1107,229 @@ window.addEventListener('popstate', function(e) {
         showScreen('profile');
       }
       break;
+    case 'books':
+      if (currentProfile) {
+        showMenu();
+      } else {
+        showScreen('profile');
+      }
+      break;
     default:
       showScreen('profile');
   }
 });
+
+// --- おすすめの本 ---
+function getReadBooks(bookProfile) {
+  const key = `books_read_${bookProfile}`;
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveReadBooks(bookProfile, readList) {
+  const key = `books_read_${bookProfile}`;
+  localStorage.setItem(key, JSON.stringify(readList));
+}
+
+function toggleReadBook(bookProfile, bookIndex) {
+  const readList = getReadBooks(bookProfile);
+  const idx = readList.indexOf(bookIndex);
+  if (idx >= 0) {
+    readList.splice(idx, 1);
+  } else {
+    readList.push(bookIndex);
+  }
+  saveReadBooks(bookProfile, readList);
+  return readList;
+}
+
+function getGenreCoverClass(genre) {
+  const g = genre.toLowerCase();
+  if (g.includes('ぼうけん') || g.includes('冒険')) return 'cover-adventure';
+  if (g.includes('ファンタジー')) return 'cover-fantasy';
+  if (g.includes('かがく') || g.includes('科学') || g.includes('算数')) return 'cover-science';
+  if (g.includes('スポーツ') || g.includes('サッカー')) return 'cover-sports';
+  if (g.includes('ミステリー') || g.includes('推理') || g.includes('なぞとき')) return 'cover-mystery';
+  if (g.includes('恋愛') || g.includes('青春')) return 'cover-romance';
+  if (g.includes('ギャグ') || g.includes('ユーモア')) return 'cover-humor';
+  if (g.includes('おばけ') || g.includes('ホラー')) return 'cover-ghost';
+  if (g.includes('おかし') || g.includes('レストラン')) return 'cover-cooking';
+  if (g.includes('伝記')) return 'cover-biography';
+  if (g.includes('プログラミング') || g.includes('テクノロジー')) return 'cover-programming';
+  if (g.includes('心理') || g.includes('自己啓発')) return 'cover-psychology';
+  if (g.includes('現代文学') || g.includes('文学')) return 'cover-literature';
+  if (g.includes('哲学') || g.includes('思考')) return 'cover-philosophy';
+  if (g.includes('歴史')) return 'cover-history';
+  if (g.includes('まんが') || g.includes('漫画')) return 'cover-manga';
+  if (g.includes('短編') || g.includes('みじかい')) return 'cover-short';
+  if (g.includes('ライトノベル')) return 'cover-lightnovel';
+  return 'cover-default';
+}
+
+function getDifficultyText(difficulty, isHikari) {
+  if (isHikari) {
+    if (difficulty === 1) return '\u2B50';
+    if (difficulty === 2) return '\u2B50\u2B50';
+    return '\u2B50\u2B50\u2B50';
+  }
+  if (difficulty === 1) return '\u2B50 かんたん';
+  if (difficulty === 2) return '\u2B50\u2B50 ふつう';
+  return '\u2B50\u2B50\u2B50 ちょっとむずかしい';
+}
+
+let currentBookProfile = null;
+let currentBookFilter = 'all';
+
+function showBooks(category) {
+  currentBookProfile = category.bookProfile;
+  currentBookFilter = 'all';
+  pushAppState('books');
+
+  const isHikari = category.bookProfile === 'hikari';
+  const titleText = isHikari ? 'おすすめの ほん' : 'おすすめの本';
+  document.getElementById('books-title').textContent = titleText;
+
+  renderBooks();
+  showScreen('books');
+}
+
+function renderBooks() {
+  if (typeof BOOK_DATA === 'undefined' || !BOOK_DATA[currentBookProfile]) return;
+
+  const books = BOOK_DATA[currentBookProfile];
+  const readList = getReadBooks(currentBookProfile);
+  const isHikari = currentBookProfile === 'hikari';
+
+  // Progress
+  const progressEl = document.getElementById('books-progress');
+  const readCount = readList.length;
+  const total = books.length;
+  const pctg = Math.round((readCount / total) * 100);
+  const progressLabel = isHikari
+    ? `<span class="count">${readCount}</span> / ${total} さつ よんだ！`
+    : `<span class="count">${readCount}</span> / ${total} さつ よんだ！`;
+  progressEl.innerHTML = `
+    ${progressLabel}
+    <div class="books-progress-bar"><div class="books-progress-fill" style="width:${pctg}%"></div></div>
+  `;
+
+  // Genres
+  const genres = [...new Set(books.map(b => b.genre))];
+  const filterEl = document.getElementById('books-filter');
+  const allLabel = isHikari ? 'ぜんぶ' : 'すべて';
+  filterEl.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = `books-filter-btn ${currentBookFilter === 'all' ? 'active' : ''}`;
+  allBtn.textContent = allLabel;
+  allBtn.onclick = () => { currentBookFilter = 'all'; renderBooks(); };
+  filterEl.appendChild(allBtn);
+
+  const readFilterLabel = isHikari ? 'まだ よんでない' : '未読';
+  const readFilterBtn = document.createElement('button');
+  readFilterBtn.className = `books-filter-btn ${currentBookFilter === 'unread' ? 'active' : ''}`;
+  readFilterBtn.textContent = readFilterLabel;
+  readFilterBtn.onclick = () => { currentBookFilter = 'unread'; renderBooks(); };
+  filterEl.appendChild(readFilterBtn);
+
+  genres.forEach(genre => {
+    const btn = document.createElement('button');
+    btn.className = `books-filter-btn ${currentBookFilter === genre ? 'active' : ''}`;
+    btn.textContent = genre;
+    btn.onclick = () => { currentBookFilter = genre; renderBooks(); };
+    filterEl.appendChild(btn);
+  });
+
+  // Filter books
+  let filtered = books.map((b, i) => ({ ...b, _index: i }));
+  if (currentBookFilter === 'unread') {
+    filtered = filtered.filter(b => !readList.includes(b._index));
+  } else if (currentBookFilter !== 'all') {
+    filtered = filtered.filter(b => b.genre === currentBookFilter);
+  }
+
+  // Render grid
+  const grid = document.getElementById('books-grid');
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    const emptyMsg = isHikari ? 'ぜんぶ よんだね！ すごい！' : 'すべて読みました！ すごい！';
+    grid.innerHTML = `<div style="text-align:center;padding:40px;color:#999;font-size:1.2em;">${emptyMsg}</div>`;
+    return;
+  }
+
+  filtered.forEach(book => {
+    const isRead = readList.includes(book._index);
+    const card = document.createElement('div');
+    card.className = `book-card ${isRead ? 'read' : ''}`;
+    card.onclick = () => openBookModal(book, isRead);
+
+    const coverClass = getGenreCoverClass(book.genre);
+    const diffText = getDifficultyText(book.difficulty, isHikari);
+
+    card.innerHTML = `
+      <div class="book-cover ${coverClass}">${book.emoji}</div>
+      <div class="book-info">
+        <div class="book-title">${book.title}</div>
+        <div class="book-author">${book.author}</div>
+        <div class="book-description">${book.description}</div>
+        <div class="book-meta">
+          <span class="book-genre-tag">${book.genre}</span>
+          <span class="book-difficulty">${diffText}</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function openBookModal(book, isRead) {
+  const isHikari = currentBookProfile === 'hikari';
+  const coverClass = getGenreCoverClass(book.genre);
+  const diffText = getDifficultyText(book.difficulty, isHikari);
+
+  const reasonTitle = isHikari ? 'おすすめの りゆう' : 'おすすめの理由';
+  const aboutTitle = isHikari ? 'どんな おはなし？' : 'どんな本？';
+  const readBtnText = isRead
+    ? (isHikari ? 'まだ よんでない にする' : 'まだ読んでないに戻す')
+    : (isHikari ? 'よんだ！' : '読んだ！');
+  const readBtnClass = isRead ? 'is-read' : 'unread';
+
+  const modal = document.getElementById('book-modal');
+  modal.innerHTML = `
+    <button class="book-modal-close" onclick="closeBookModal()">&times;</button>
+    <div class="book-modal-cover ${coverClass}">${book.emoji}</div>
+    <h3>${book.title}</h3>
+    <div class="modal-author">${book.author}</div>
+    <div class="modal-section">
+      <div class="modal-section-title">${aboutTitle}</div>
+      <p>${book.description}</p>
+    </div>
+    <div class="modal-reason">
+      <div class="modal-section-title">${reasonTitle}</div>
+      <p>${book.reason}</p>
+    </div>
+    <div class="book-meta" style="justify-content:center;margin:10px 0;">
+      <span class="book-genre-tag">${book.genre}</span>
+      <span class="book-difficulty">${diffText}</span>
+    </div>
+    <button class="book-read-btn ${readBtnClass}" onclick="handleReadToggle(${book._index})">${readBtnText}</button>
+  `;
+
+  document.getElementById('book-modal-overlay').classList.add('show');
+}
+
+function closeBookModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('book-modal-overlay').classList.remove('show');
+}
+
+function handleReadToggle(bookIndex) {
+  const readList = toggleReadBook(currentBookProfile, bookIndex);
+  const isRead = readList.includes(bookIndex);
+  const book = { ...BOOK_DATA[currentBookProfile][bookIndex], _index: bookIndex };
+  openBookModal(book, isRead);
+  renderBooks();
+}
 
 // --- 初期化 ---
 function init() {
