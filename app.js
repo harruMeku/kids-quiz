@@ -52,6 +52,14 @@ const PROFILES = {
       { id: "pippi", emoji: "🧡", title: "ながくつ下のピッピ", desc: "ピッピ だいすき！", type: "pippi" },
       { id: "books_h", emoji: "📚", title: "おすすめの ほん", desc: "つぎは なにを よもう？", type: "bookRecommendation", bookProfile: "hikari" },
     ]
+  },
+  mayumi: {
+    name: "お母さん",
+    grade: "すどう家の太陽",
+    categories: [
+      { id: "reading_m", emoji: "📚", title: "よみもの", desc: "読んで楽しむクイズ", type: "reading_mayumi" },
+      { id: "books_m", emoji: "📖", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "mayumi" },
+    ]
   }
 };
 
@@ -196,8 +204,13 @@ function showMenu() {
     let progressText = '';
     if (cat.type === 'bookRecommendation') {
       const readBooks = getReadBooks(cat.bookProfile);
-      const totalBooks = (typeof BOOK_DATA !== 'undefined' && BOOK_DATA[cat.bookProfile]) ? BOOK_DATA[cat.bookProfile].length : 0;
-      if (totalBooks > 0) progressText = `${readBooks.length} / ${totalBooks} さつ よんだ！`;
+      const wantBooks = getWantBooks(cat.bookProfile);
+      const isH = cat.bookProfile === 'hikari';
+      if (isH) {
+        progressText = `よみたい: ${wantBooks.length} / よんだ: ${readBooks.length}`;
+      } else {
+        progressText = `読みたい: ${wantBooks.length}冊 / よんだ: ${readBooks.length}冊`;
+      }
     } else {
       const srData = getSRData(currentProfile, cat.id);
       const totalItems = countCategoryItems(cat);
@@ -227,6 +240,7 @@ function countCategoryItems(cat) {
   if (cat.type === 'reading') return typeof READING_DATA !== 'undefined' ? READING_DATA.length : 0;
   if (cat.type === 'reading_tomohiro') return typeof READING_TOMOHIRO_DATA !== 'undefined' ? READING_TOMOHIRO_DATA.length : 0;
   if (cat.type === 'reading_kanako') return typeof READING_KANAKO_DATA !== 'undefined' ? READING_KANAKO_DATA.length : 0;
+  if (cat.type === 'reading_mayumi') return typeof READING_MAYUMI_DATA !== 'undefined' ? READING_MAYUMI_DATA.length : 0;
   if (cat.type === 'olta') {
     if (typeof OLTA_QUIZ === 'undefined') return 0;
     if (cat.oltaCategory === 'all') {
@@ -269,6 +283,7 @@ function generateQuestions(category) {
     case 'reading': return generateReadingQuestions(category);
     case 'reading_tomohiro': return generateReadingTomohiroQuestions(category);
     case 'reading_kanako': return generateReadingKanakoQuestions(category);
+    case 'reading_mayumi': return generateReadingMayumiQuestions(category);
     case 'olta': return generateOltaQuestions(category);
     case 'numberReading': return generateNumberReadingQuestions(category);
     case 'kaguya': return generateKaguyaQuestions(category);
@@ -372,6 +387,20 @@ function generateReadingKanakoQuestions(category) {
   return selected.map(s => ({
     type: 'choice',
     id: `reading_k_${s.id}`,
+    label: 'よみものクイズ',
+    question: s.item.text + '\n\n' + s.item.question,
+    answer: s.item.answer,
+    choices: s.item.choices,
+    display: ''
+  }));
+}
+
+function generateReadingMayumiQuestions(category) {
+  if (typeof READING_MAYUMI_DATA === 'undefined') return [];
+  const selected = weightedSelect(READING_MAYUMI_DATA, currentProfile, category.id, Math.min(QUESTIONS_PER_ROUND, READING_MAYUMI_DATA.length));
+  return selected.map(s => ({
+    type: 'choice',
+    id: `reading_m_${s.id}`,
     label: 'よみものクイズ',
     question: s.item.text + '\n\n' + s.item.question,
     answer: s.item.answer,
@@ -1120,6 +1149,32 @@ window.addEventListener('popstate', function(e) {
 });
 
 // --- おすすめの本 ---
+const BOOKS_SHOWN = 20; // Show 20 books at a time from the 60-book pool
+
+// U-NEXT / BookWalker バッジ生成
+function getBookBadges(book, isHikari) {
+  let badges = '';
+  if (book.unext) {
+    badges += isHikari
+      ? '<span class="book-badge unext">🎬</span>'
+      : '<span class="book-badge unext">🎬 U-NEXT</span>';
+  }
+  if (book.bookwalker) {
+    badges += isHikari
+      ? '<span class="book-badge bookwalker">📱</span>'
+      : '<span class="book-badge bookwalker">📱 BookWalker</span>';
+  }
+  return badges;
+}
+
+// Child name mapping for emails
+const CHILD_NAMES = {
+  hikari: 'ひかり',
+  tomohiro: '友博',
+  kanako: '加奈子',
+  mayumi: 'まゆみ'
+};
+
 function getReadBooks(bookProfile) {
   const key = `books_read_${bookProfile}`;
   const data = localStorage.getItem(key);
@@ -1131,6 +1186,59 @@ function saveReadBooks(bookProfile, readList) {
   localStorage.setItem(key, JSON.stringify(readList));
 }
 
+function getWantBooks(bookProfile) {
+  const key = `books_want_${bookProfile}`;
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveWantBooks(bookProfile, wantList) {
+  const key = `books_want_${bookProfile}`;
+  localStorage.setItem(key, JSON.stringify(wantList));
+}
+
+function getDismissedBooks(bookProfile) {
+  const key = `books_dismissed_${bookProfile}`;
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveDismissedBooks(bookProfile, dismissedList) {
+  const key = `books_dismissed_${bookProfile}`;
+  localStorage.setItem(key, JSON.stringify(dismissedList));
+}
+
+// Genre preference tracking
+function getGenrePrefs(bookProfile) {
+  const key = `books_genre_prefs_${bookProfile}`;
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : { liked: {}, disliked: {} };
+}
+
+function saveGenrePrefs(bookProfile, prefs) {
+  const key = `books_genre_prefs_${bookProfile}`;
+  localStorage.setItem(key, JSON.stringify(prefs));
+}
+
+function recordGenreLike(bookProfile, genre) {
+  const prefs = getGenrePrefs(bookProfile);
+  // A genre string can contain multiple genres separated by ・
+  const genres = genre.split(/[・\/]/).map(g => g.trim());
+  genres.forEach(g => {
+    prefs.liked[g] = (prefs.liked[g] || 0) + 1;
+  });
+  saveGenrePrefs(bookProfile, prefs);
+}
+
+function recordGenreDislike(bookProfile, genre) {
+  const prefs = getGenrePrefs(bookProfile);
+  const genres = genre.split(/[・\/]/).map(g => g.trim());
+  genres.forEach(g => {
+    prefs.disliked[g] = (prefs.disliked[g] || 0) + 1;
+  });
+  saveGenrePrefs(bookProfile, prefs);
+}
+
 function toggleReadBook(bookProfile, bookIndex) {
   const readList = getReadBooks(bookProfile);
   const idx = readList.indexOf(bookIndex);
@@ -1138,9 +1246,92 @@ function toggleReadBook(bookProfile, bookIndex) {
     readList.splice(idx, 1);
   } else {
     readList.push(bookIndex);
+    // Record genre like
+    if (BOOK_DATA && BOOK_DATA[bookProfile] && BOOK_DATA[bookProfile][bookIndex]) {
+      recordGenreLike(bookProfile, BOOK_DATA[bookProfile][bookIndex].genre);
+    }
   }
   saveReadBooks(bookProfile, readList);
   return readList;
+}
+
+function markWantToRead(bookProfile, bookIndex) {
+  const wantList = getWantBooks(bookProfile);
+  if (!wantList.includes(bookIndex)) {
+    wantList.push(bookIndex);
+    saveWantBooks(bookProfile, wantList);
+    // Record genre like
+    if (BOOK_DATA && BOOK_DATA[bookProfile] && BOOK_DATA[bookProfile][bookIndex]) {
+      recordGenreLike(bookProfile, BOOK_DATA[bookProfile][bookIndex].genre);
+    }
+  }
+  return wantList;
+}
+
+function dismissBook(bookProfile, bookIndex) {
+  const dismissedList = getDismissedBooks(bookProfile);
+  if (!dismissedList.includes(bookIndex)) {
+    dismissedList.push(bookIndex);
+    saveDismissedBooks(bookProfile, dismissedList);
+    // Record genre dislike
+    if (BOOK_DATA && BOOK_DATA[bookProfile] && BOOK_DATA[bookProfile][bookIndex]) {
+      recordGenreDislike(bookProfile, BOOK_DATA[bookProfile][bookIndex].genre);
+    }
+  }
+  return dismissedList;
+}
+
+// Select which books to show (20 from the 60-book pool)
+function getVisibleBooks(bookProfile) {
+  if (!BOOK_DATA || !BOOK_DATA[bookProfile]) return [];
+
+  const allBooks = BOOK_DATA[bookProfile];
+  const dismissed = getDismissedBooks(bookProfile);
+  const readList = getReadBooks(bookProfile);
+  const wantList = getWantBooks(bookProfile);
+  const prefs = getGenrePrefs(bookProfile);
+
+  // Start with non-dismissed books
+  const available = allBooks.map((b, i) => ({ ...b, _index: i }))
+    .filter(b => !dismissed.includes(b._index));
+
+  // Books that are read or wanted always show
+  const pinned = available.filter(b => readList.includes(b._index) || wantList.includes(b._index));
+  const unpinned = available.filter(b => !readList.includes(b._index) && !wantList.includes(b._index));
+
+  // Score unpinned books based on genre preference
+  const scoredUnpinned = unpinned.map(b => {
+    let score = 0;
+    const genres = b.genre.split(/[・\/]/).map(g => g.trim());
+    genres.forEach(g => {
+      score += (prefs.liked[g] || 0) * 2;
+      score -= (prefs.disliked[g] || 0) * 1;
+    });
+    // Add small random factor for diversity
+    score += Math.random() * 0.5;
+    return { ...b, _score: score };
+  });
+
+  // Sort by score descending
+  scoredUnpinned.sort((a, b) => b._score - a._score);
+
+  // Fill up to BOOKS_SHOWN
+  const remaining = BOOKS_SHOWN - pinned.length;
+  const selected = [...pinned, ...scoredUnpinned.slice(0, Math.max(0, remaining))];
+
+  // Sort by original index for stable display
+  selected.sort((a, b) => a._index - b._index);
+
+  return selected;
+}
+
+function sendWantToReadEmail(bookProfile, book) {
+  const childName = CHILD_NAMES[bookProfile] || bookProfile;
+  const subject = encodeURIComponent(`${childName}が読みたい本があります`);
+  const body = encodeURIComponent(
+    `${childName}が「${book.title}」（${book.author}）を読みたがっています。光が丘図書館で借りるか、購入をお願いします！`
+  );
+  window.open(`mailto:mayu0314@gmail.com?subject=${subject}&body=${body}`, '_self');
 }
 
 function getGenreCoverClass(genre) {
@@ -1163,6 +1354,10 @@ function getGenreCoverClass(genre) {
   if (g.includes('まんが') || g.includes('漫画')) return 'cover-manga';
   if (g.includes('短編') || g.includes('みじかい')) return 'cover-short';
   if (g.includes('ライトノベル')) return 'cover-lightnovel';
+  if (g.includes('ノンフィクション')) return 'cover-biography';
+  if (g.includes('SF')) return 'cover-science';
+  if (g.includes('がくしゅう')) return 'cover-science';
+  if (g.includes('自己啓発')) return 'cover-psychology';
   return 'cover-default';
 }
 
@@ -1196,25 +1391,33 @@ function showBooks(category) {
 function renderBooks() {
   if (typeof BOOK_DATA === 'undefined' || !BOOK_DATA[currentBookProfile]) return;
 
-  const books = BOOK_DATA[currentBookProfile];
+  const visibleBooks = getVisibleBooks(currentBookProfile);
   const readList = getReadBooks(currentBookProfile);
+  const wantList = getWantBooks(currentBookProfile);
   const isHikari = currentBookProfile === 'hikari';
 
   // Progress
   const progressEl = document.getElementById('books-progress');
   const readCount = readList.length;
-  const total = books.length;
-  const pctg = Math.round((readCount / total) * 100);
-  const progressLabel = isHikari
-    ? `<span class="count">${readCount}</span> / ${total} さつ よんだ！`
-    : `<span class="count">${readCount}</span> / ${total} さつ よんだ！`;
+  const wantCount = wantList.length;
+  const totalPool = BOOK_DATA[currentBookProfile].length;
+  const dismissed = getDismissedBooks(currentBookProfile);
+  const availableCount = totalPool - dismissed.length;
+
+  let progressLabel;
+  if (isHikari) {
+    progressLabel = `<span style="color:#e91e63;">&#10084; よみたい: ${wantCount}さつ</span> / <span class="count">よんだ: ${readCount}さつ</span>`;
+  } else {
+    progressLabel = `<span style="color:#e91e63;">&#10084; 読みたい: ${wantCount}冊</span> / <span class="count">読んだ: ${readCount}冊</span>`;
+  }
+  const pctg = availableCount > 0 ? Math.round((readCount / availableCount) * 100) : 0;
   progressEl.innerHTML = `
     ${progressLabel}
     <div class="books-progress-bar"><div class="books-progress-fill" style="width:${pctg}%"></div></div>
   `;
 
-  // Genres
-  const genres = [...new Set(books.map(b => b.genre))];
+  // Genres from visible books
+  const genres = [...new Set(visibleBooks.map(b => b.genre))];
   const filterEl = document.getElementById('books-filter');
   const allLabel = isHikari ? 'ぜんぶ' : 'すべて';
   filterEl.innerHTML = '';
@@ -1231,6 +1434,26 @@ function renderBooks() {
   readFilterBtn.onclick = () => { currentBookFilter = 'unread'; renderBooks(); };
   filterEl.appendChild(readFilterBtn);
 
+  // U-NEXT / BookWalker フィルター
+  const hasUnext = visibleBooks.some(b => b.unext);
+  const hasBookwalker = visibleBooks.some(b => b.bookwalker);
+  if (hasUnext) {
+    const unextBtn = document.createElement('button');
+    unextBtn.className = `books-filter-btn ${currentBookFilter === 'unext' ? 'active' : ''}`;
+    unextBtn.innerHTML = '🎬 U-NEXT';
+    unextBtn.style.cssText = currentBookFilter === 'unext' ? 'background:#7b1fa2;color:white;border-color:#7b1fa2;' : '';
+    unextBtn.onclick = () => { currentBookFilter = 'unext'; renderBooks(); };
+    filterEl.appendChild(unextBtn);
+  }
+  if (hasBookwalker) {
+    const bwBtn = document.createElement('button');
+    bwBtn.className = `books-filter-btn ${currentBookFilter === 'bookwalker' ? 'active' : ''}`;
+    bwBtn.innerHTML = '📱 BookWalker';
+    bwBtn.style.cssText = currentBookFilter === 'bookwalker' ? 'background:#e65100;color:white;border-color:#e65100;' : '';
+    bwBtn.onclick = () => { currentBookFilter = 'bookwalker'; renderBooks(); };
+    filterEl.appendChild(bwBtn);
+  }
+
   genres.forEach(genre => {
     const btn = document.createElement('button');
     btn.className = `books-filter-btn ${currentBookFilter === genre ? 'active' : ''}`;
@@ -1239,10 +1462,14 @@ function renderBooks() {
     filterEl.appendChild(btn);
   });
 
-  // Filter books
-  let filtered = books.map((b, i) => ({ ...b, _index: i }));
+  // Filter visible books
+  let filtered = visibleBooks;
   if (currentBookFilter === 'unread') {
     filtered = filtered.filter(b => !readList.includes(b._index));
+  } else if (currentBookFilter === 'unext') {
+    filtered = filtered.filter(b => b.unext);
+  } else if (currentBookFilter === 'bookwalker') {
+    filtered = filtered.filter(b => b.bookwalker);
   } else if (currentBookFilter !== 'all') {
     filtered = filtered.filter(b => b.genre === currentBookFilter);
   }
@@ -1259,22 +1486,39 @@ function renderBooks() {
 
   filtered.forEach(book => {
     const isRead = readList.includes(book._index);
+    const isWant = wantList.includes(book._index);
     const card = document.createElement('div');
-    card.className = `book-card ${isRead ? 'read' : ''}`;
-    card.onclick = () => openBookModal(book, isRead);
+    card.className = `book-card ${isRead ? 'read' : ''} ${isWant ? 'want' : ''}`;
+    card.onclick = (e) => {
+      // Don't open modal if a button was clicked
+      if (e.target.closest('.book-action-btn')) return;
+      openBookModal(book, isRead, isWant);
+    };
 
     const coverClass = getGenreCoverClass(book.genre);
     const diffText = getDifficultyText(book.difficulty, isHikari);
 
+    const wantLabel = isHikari ? 'よんでみたい！' : '読んでみたい';
+    const dismissLabel = isHikari ? 'きょうみなし' : '興味なし';
+    const readLabel = isHikari ? 'よんだ！' : 'よんだ！';
+
+    const wantIndicator = isWant ? '<span class="book-want-badge">&#10084;</span>' : '';
+
     card.innerHTML = `
       <div class="book-cover ${coverClass}">${book.emoji}</div>
       <div class="book-info">
-        <div class="book-title">${book.title}</div>
+        <div class="book-title"><a href="https://www.amazon.co.jp/s?k=${encodeURIComponent(book.title + ' ' + book.author)}" target="_blank" onclick="event.stopPropagation();" style="color:inherit;text-decoration:none;">${wantIndicator}${book.title}</a></div>
         <div class="book-author">${book.author}</div>
         <div class="book-description">${book.description}</div>
         <div class="book-meta">
           <span class="book-genre-tag">${book.genre}</span>
+          ${getBookBadges(book, isHikari)}
           <span class="book-difficulty">${diffText}</span>
+        </div>
+        <div class="book-actions">
+          <button class="book-action-btn want-btn ${isWant ? 'active' : ''}" onclick="handleWantToRead(${book._index})">${isWant ? '&#10084;' : wantLabel}</button>
+          <button class="book-action-btn dismiss-btn" onclick="handleDismiss(${book._index})">${dismissLabel}</button>
+          <button class="book-action-btn read-btn ${isRead ? 'active' : ''}" onclick="handleReadToggle(${book._index})">${readLabel}</button>
         </div>
       </div>
     `;
@@ -1282,23 +1526,30 @@ function renderBooks() {
   });
 }
 
-function openBookModal(book, isRead) {
+function openBookModal(book, isRead, isWant) {
   const isHikari = currentBookProfile === 'hikari';
   const coverClass = getGenreCoverClass(book.genre);
   const diffText = getDifficultyText(book.difficulty, isHikari);
 
   const reasonTitle = isHikari ? 'おすすめの りゆう' : 'おすすめの理由';
   const aboutTitle = isHikari ? 'どんな おはなし？' : 'どんな本？';
+
+  const wantLabel = isHikari ? 'よんでみたい！' : '読んでみたい';
+  const dismissLabel = isHikari ? 'きょうみなし' : '興味なし';
   const readBtnText = isRead
     ? (isHikari ? 'まだ よんでない にする' : 'まだ読んでないに戻す')
     : (isHikari ? 'よんだ！' : '読んだ！');
   const readBtnClass = isRead ? 'is-read' : 'unread';
 
+  const wantBtnHtml = isWant
+    ? `<button class="book-modal-action-btn want active" disabled>&#10084; ${isHikari ? 'よみたい！' : '読みたい！'}</button>`
+    : `<button class="book-modal-action-btn want" onclick="handleWantToRead(${book._index}); closeBookModal();">&#10084; ${wantLabel}</button>`;
+
   const modal = document.getElementById('book-modal');
   modal.innerHTML = `
     <button class="book-modal-close" onclick="closeBookModal()">&times;</button>
     <div class="book-modal-cover ${coverClass}">${book.emoji}</div>
-    <h3>${book.title}</h3>
+    <h3><a href="https://www.amazon.co.jp/s?k=${encodeURIComponent(book.title + ' ' + book.author)}" target="_blank" style="color:inherit;">&#128279; ${book.title}</a></h3>
     <div class="modal-author">${book.author}</div>
     <div class="modal-section">
       <div class="modal-section-title">${aboutTitle}</div>
@@ -1310,9 +1561,14 @@ function openBookModal(book, isRead) {
     </div>
     <div class="book-meta" style="justify-content:center;margin:10px 0;">
       <span class="book-genre-tag">${book.genre}</span>
+      ${getBookBadges(book, isHikari)}
       <span class="book-difficulty">${diffText}</span>
     </div>
-    <button class="book-read-btn ${readBtnClass}" onclick="handleReadToggle(${book._index})">${readBtnText}</button>
+    <div class="book-modal-buttons">
+      ${wantBtnHtml}
+      <button class="book-modal-action-btn dismiss" onclick="handleDismiss(${book._index}); closeBookModal();">${dismissLabel}</button>
+      <button class="book-read-btn ${readBtnClass}" onclick="handleReadToggle(${book._index})">${readBtnText}</button>
+    </div>
   `;
 
   document.getElementById('book-modal-overlay').classList.add('show');
@@ -1326,15 +1582,34 @@ function closeBookModal(event) {
 function handleReadToggle(bookIndex) {
   const readList = toggleReadBook(currentBookProfile, bookIndex);
   const isRead = readList.includes(bookIndex);
+  const isWant = getWantBooks(currentBookProfile).includes(bookIndex);
   const book = { ...BOOK_DATA[currentBookProfile][bookIndex], _index: bookIndex };
-  openBookModal(book, isRead);
+  // If modal is open, update it
+  if (document.getElementById('book-modal-overlay').classList.contains('show')) {
+    openBookModal(book, isRead, isWant);
+  }
+  renderBooks();
+}
+
+function handleWantToRead(bookIndex) {
+  const wantList = markWantToRead(currentBookProfile, bookIndex);
+  const book = BOOK_DATA[currentBookProfile][bookIndex];
+  // Send email
+  sendWantToReadEmail(currentBookProfile, book);
+  renderBooks();
+}
+
+function handleDismiss(bookIndex) {
+  dismissBook(currentBookProfile, bookIndex);
+  // Close modal if open
+  document.getElementById('book-modal-overlay').classList.remove('show');
   renderBooks();
 }
 
 // --- 初期化 ---
 function init() {
   // 連続日数表示
-  ['sudo', 'kanako', 'tomohiro', 'hikari'].forEach(p => {
+  ['sudo', 'kanako', 'tomohiro', 'hikari', 'mayumi'].forEach(p => {
     const stats = getSessionStats(p);
     const el = document.getElementById(`streak-${p}`);
     if (stats.streak > 0) {
