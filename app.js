@@ -45,6 +45,7 @@ const PROFILES = {
       { id: "math_mix20", emoji: "&#127922;", title: "まぜまぜ", desc: "たしざん と ひきざん", type: "math", mathType: "mixed20" },
       { id: "reading", emoji: "&#128214;", title: "よみとり", desc: "おはなしを よんで こたえよう", type: "reading" },
       { id: "number_reading", emoji: "&#128290;", title: "よんけたの かず", desc: "おおきな かずを よんでみよう", type: "numberReading" },
+      { id: "pippi", emoji: "🧡", title: "ながくつ下のピッピ", desc: "ピッピ だいすき！", type: "pippi" },
     ]
   }
 };
@@ -223,6 +224,10 @@ function countCategoryItems(cat) {
     if (typeof KAGUYA_QUIZ === 'undefined') return 0;
     return Object.values(KAGUYA_QUIZ).reduce((sum, arr) => sum + arr.length, 0);
   }
+  if (cat.type === 'pippi') {
+    if (typeof PIPPI_QUIZ === 'undefined') return 0;
+    return Object.values(PIPPI_QUIZ).reduce((sum, arr) => sum + arr.length, 0);
+  }
   if (cat.type === 'numberReading') return 0; // infinite
   return 0; // math is infinite
 }
@@ -251,6 +256,7 @@ function generateQuestions(category) {
     case 'olta': return generateOltaQuestions(category);
     case 'numberReading': return generateNumberReadingQuestions(category);
     case 'kaguya': return generateKaguyaQuestions(category);
+    case 'pippi': return generatePippiQuestions(category);
     default: return [];
   }
 }
@@ -627,6 +633,70 @@ function generateKaguyaQuestions(category) {
       type: 'input',
       id: s.id,
       label: KAGUYA_CATEGORIES[item._cat]?.name || 'かぐや様クイズ',
+      question: item.q,
+      answer: item.a,
+      hint: item.hint || '',
+      explanation: item.explanation || '',
+      display: ''
+    };
+  });
+}
+
+// --- ながくつ下のピッピ クイズ生成 ---
+function generatePippiQuestions(category) {
+  if (typeof PIPPI_QUIZ === 'undefined') return [];
+
+  // 全カテゴリから問題をプール
+  let pool = [];
+  Object.entries(PIPPI_QUIZ).forEach(([cat, items]) => {
+    items.forEach((item, i) => {
+      pool.push({ ...item, name: `pippi_${cat}_${i}`, _cat: cat });
+    });
+  });
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+
+  return selected.map(s => {
+    const item = s.item;
+
+    // キャラクター識別問題（アバター付き）
+    if (item.avatar && PIPPI_AVATARS[item.avatar]) {
+      const avatarSvg = PIPPI_AVATARS[item.avatar];
+      const choices = item.choices || generateChoices(item.a, PIPPI_CHARACTER_NAMES, 4);
+      return {
+        type: 'choice',
+        id: s.id,
+        label: PIPPI_CATEGORIES[item._cat]?.name || 'ピッピクイズ',
+        question: item.q,
+        questionHtml: `<div style="margin-bottom:10px;">${avatarSvg}</div><div>${item.q}</div>`,
+        answer: item.a,
+        hint: item.hint || '',
+        explanation: item.explanation || '',
+        choices: choices,
+        display: ''
+      };
+    }
+
+    // 選択肢問題
+    if (item.choices) {
+      return {
+        type: 'choice',
+        id: s.id,
+        label: PIPPI_CATEGORIES[item._cat]?.name || 'ピッピクイズ',
+        question: item.q,
+        answer: item.a,
+        hint: item.hint || '',
+        explanation: item.explanation || '',
+        choices: generateChoices(item.a, item.choices, item.choices.length),
+        display: ''
+      };
+    }
+
+    // フォールバック（入力式）
+    return {
+      type: 'input',
+      id: s.id,
+      label: PIPPI_CATEGORIES[item._cat]?.name || 'ピッピクイズ',
       question: item.q,
       answer: item.a,
       hint: item.hint || '',
