@@ -54,8 +54,9 @@ const PROFILES = {
       // 国語
       { id: "kanji_write_3", emoji: "&#9997;", title: "漢字の書き（3年生）", desc: "よみ→漢字を書こう 200字", type: "kanjiWrite", grades: [3], group: "grp_japanese" },
       { id: "kanji_123", emoji: "&#128209;", title: "漢字の読み（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3], group: "grp_japanese" },
-      { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro", group: "grp_japanese" },
-      { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro", group: "grp_japanese" },
+      // トップレベル（グループ外）
+      { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro" },
+      { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro" },
       // 理科
       { id: "science_all", emoji: "&#128300;", title: "全分野ミックス", desc: "100問からランダム", type: "science", scienceCategory: "all", group: "grp_science" },
       { id: "science_plants", emoji: "&#127807;", title: "植物", desc: "光合成・花のつくり・分類", type: "science", scienceCategory: "plants", group: "grp_science" },
@@ -250,9 +251,10 @@ function showMenu(groupId) {
   const grid = document.getElementById('menu-grid');
   grid.innerHTML = '';
 
-  // グループ対応: groupsが定義されていてgroupIdが指定されていない場合はグループ一覧
+  // グループ対応: groupsが定義されていてgroupIdが指定されていない場合はグループ一覧+グループ外カテゴリ
   if (profile.groups && !groupId) {
     currentMenuGroup = null;
+    // グループカード
     profile.groups.forEach(grp => {
       const cats = profile.categories.filter(c => c.group === grp.id);
       const div = document.createElement('div');
@@ -280,6 +282,35 @@ function showMenu(groupId) {
       `;
       grid.appendChild(div);
     });
+
+    // グループに属さないカテゴリをトップレベルに表示
+    const ungrouped = profile.categories.filter(c => !c.group);
+    ungrouped.forEach(cat => {
+      const div = document.createElement('div');
+      div.className = 'menu-item';
+      div.onclick = () => cat.type === 'bookRecommendation' ? showBooks(cat) : startQuiz(cat);
+
+      let progressText = '';
+      if (cat.type === 'bookRecommendation') {
+        const readBooks = getReadBooks(cat.bookProfile);
+        const wantBooks = getWantBooks(cat.bookProfile);
+        progressText = `読みたい: ${wantBooks.length}冊 / よんだ: ${readBooks.length}冊`;
+      } else {
+        const srData = getSRData(currentProfile, cat.id);
+        const totalItems = countCategoryItems(cat);
+        const masteredCount = Object.values(srData).filter(s => s.correct >= 2 && s.weight < 0.8).length;
+        progressText = totalItems > 0 ? `${masteredCount} / ${totalItems} マスター` : '';
+      }
+
+      div.innerHTML = `
+        <div class="menu-emoji">${cat.emoji}</div>
+        <div class="menu-title">${cat.title}</div>
+        <div class="menu-desc">${cat.desc}</div>
+        ${progressText ? `<div class="menu-progress">${progressText}</div>` : ''}
+      `;
+      grid.appendChild(div);
+    });
+
     showScreen('menu');
     return;
   }
