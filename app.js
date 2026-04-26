@@ -33,50 +33,63 @@ const PROFILES = {
   tomohiro: {
     name: "友博",
     grade: "小学4年生",
+    groups: [
+      { id: "grp_math", emoji: "&#128290;", title: "算数", desc: "計算力をきたえる", color: "#2196f3" },
+      { id: "grp_japanese", emoji: "&#128209;", title: "国語", desc: "漢字・読解・読書", color: "#e91e63" },
+      { id: "grp_science", emoji: "&#128300;", title: "理科", desc: "植物・動物・天体・実験", color: "#4caf50" },
+      { id: "grp_social", emoji: "&#127758;", title: "社会", desc: "地理・歴史・公民", color: "#ff9800" },
+    ],
     categories: [
-      { id: "math_juken", emoji: "&#127919;", title: "受験算数ミックス", desc: "分数・小数・工夫すべて", type: "math", mathType: "jukenMix" },
-      { id: "math_fraction", emoji: "&#189;", title: "分数の計算", desc: "通分・約分つき", type: "math", mathType: "fraction" },
-      { id: "math_decimal", emoji: "&#128290;", title: "小数の計算", desc: "＋−×をマスター", type: "math", mathType: "decimal" },
-      { id: "math_gcdlcm", emoji: "&#128270;", title: "最大公約数・最小公倍数", desc: "2つの数から求めよう", type: "math", mathType: "gcdLcm" },
-      { id: "math_trick", emoji: "&#128161;", title: "計算の工夫", desc: "暗算力をきたえる", type: "math", mathType: "calcTrick" },
-      { id: "math_unit", emoji: "&#128207;", title: "単位換算", desc: "長さ・重さ・かさ", type: "math", mathType: "unitConvert" },
-      { id: "math_divisibility", emoji: "&#128290;", title: "倍数・約数", desc: "約数をぜんぶ答えよう", type: "math", mathType: "divisibility" },
-      { id: "math_mixed", emoji: "&#129518;", title: "四則演算ミックス", desc: "＋−×÷ ぜんぶ", type: "math", mathType: "mixedAll" },
-      { id: "math_mult", emoji: "&#10006;", title: "かけ算", desc: "2ケタ×1ケタ", type: "math", mathType: "multiplication" },
-      { id: "math_div", emoji: "&#10135;", title: "わり算", desc: "わりきれる問題", type: "math", mathType: "division" },
-      { id: "kanji_write_3", emoji: "&#9997;", title: "漢字の書き（3年生）", desc: "よみ→漢字を書こう 200字", type: "kanjiWrite", grades: [3] },
-      { id: "kanji_123", emoji: "&#128209;", title: "漢字の読み（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3] },
-      { id: "map_symbol", emoji: "&#128506;", title: "地図記号", desc: "地図記号をおぼえよう", type: "mapSymbol" },
-      { id: "science_all", emoji: "&#128300;", title: "理科（全分野）", desc: "植物・動物・天気・宇宙など", type: "science", scienceCategory: "all" },
-      { id: "science_plants", emoji: "&#127807;", title: "植物", desc: "光合成・花のつくり・分類", type: "science", scienceCategory: "plants" },
-      { id: "science_animals", emoji: "&#128027;", title: "動物・昆虫", desc: "昆虫・脊椎動物・食物連鎖", type: "science", scienceCategory: "animals" },
-      { id: "science_body", emoji: "&#129504;", title: "人のからだ", desc: "消化・血液・呼吸・骨", type: "science", scienceCategory: "humanBody" },
-      { id: "science_weather", emoji: "&#127783;", title: "天気・気象", desc: "雲・台風・百葉箱", type: "science", scienceCategory: "weather" },
-      { id: "science_astro", emoji: "&#127771;", title: "天体・宇宙", desc: "月・太陽・星座・惑星", type: "science", scienceCategory: "astronomy" },
-      { id: "science_matter", emoji: "&#9878;", title: "物質・水溶液", desc: "三態・リトマス・金属", type: "science", scienceCategory: "matter" },
-      { id: "science_energy", emoji: "&#9889;", title: "力・エネルギー", desc: "てこ・電気・磁石・光", type: "science", scienceCategory: "energy" },
-      { id: "science_earth", emoji: "&#127964;", title: "大地のつくり", desc: "地層・化石・地震・火山", type: "science", scienceCategory: "earthScience" },
-      { id: "civics_all", emoji: "&#9878;", title: "公民（全分野）", desc: "憲法・政治・国際・経済55問", type: "civics", civicsCategory: "all" },
-      { id: "civics_constitution", emoji: "&#128218;", title: "日本国憲法", desc: "三大原則・人権・三大義務", type: "civics", civicsCategory: "constitution" },
-      { id: "civics_government", emoji: "&#127963;", title: "三権分立・政治", desc: "国会・内閣・裁判所・選挙", type: "civics", civicsCategory: "government" },
-      { id: "civics_localGov", emoji: "&#127968;", title: "地方自治", desc: "知事・直接請求権・地方税", type: "civics", civicsCategory: "localGov" },
-      { id: "civics_international", emoji: "&#127758;", title: "国際社会", desc: "国連・PKO・SDGs・領土", type: "civics", civicsCategory: "international" },
-      { id: "civics_economy", emoji: "&#128176;", title: "くらしと経済", desc: "税金・社会保障・日本銀行", type: "civics", civicsCategory: "economy" },
-      { id: "geo_all", emoji: "&#127758;", title: "地理・産業（全分野）", desc: "農業・水産・工業・貿易・気候60問", type: "geoIndustry", geoCategory: "all" },
-      { id: "geo_agri", emoji: "&#127806;", title: "農業", desc: "米・果物・野菜・畜産", type: "geoIndustry", geoCategory: "agriculture" },
-      { id: "geo_fish", emoji: "&#127843;", title: "水産業", desc: "漁港・養殖・200海里", type: "geoIndustry", geoCategory: "fishery" },
-      { id: "geo_industry", emoji: "&#127981;", title: "工業", desc: "工業地帯・自動車・IC", type: "geoIndustry", geoCategory: "industry" },
-      { id: "geo_trade", emoji: "&#128674;", title: "貿易・輸送", desc: "輸出入・加工貿易", type: "geoIndustry", geoCategory: "trade" },
-      { id: "geo_climate", emoji: "&#127780;", title: "気候・地形", desc: "季節風・山脈・河川", type: "geoIndustry", geoCategory: "climate" },
-      { id: "history_all", emoji: "&#127981;", title: "歴史（全時代）", desc: "縄文〜現代まで100問", type: "history", historyCategory: "all" },
-      { id: "history_ancient", emoji: "&#128081;", title: "古代〜平安", desc: "聖徳太子・奈良・平安の20問", type: "history", historyCategory: "ancient" },
-      { id: "history_medieval", emoji: "&#9876;", title: "鎌倉・室町", desc: "幕府・元寇・金閣銀閣の15問", type: "history", historyCategory: "medieval" },
-      { id: "history_early", emoji: "&#9876;", title: "安土桃山・江戸", desc: "信長・秀吉・家康の20問", type: "history", historyCategory: "earlyModern" },
-      { id: "history_modern", emoji: "&#127981;", title: "明治〜昭和前期", desc: "明治維新・戦争の20問", type: "history", historyCategory: "modern" },
-      { id: "history_contemporary", emoji: "&#127758;", title: "戦後〜現代", desc: "憲法・高度成長・冷戦の10問", type: "history", historyCategory: "contemporary" },
-      { id: "history_timeline", emoji: "&#128336;", title: "年号・時代順", desc: "中受定番の年号15問", type: "history", historyCategory: "timeline" },
-      { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro" },
-      { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro" },
+      // 算数
+      { id: "math_juken", emoji: "&#127919;", title: "受験算数ミックス", desc: "分数・小数・工夫すべて", type: "math", mathType: "jukenMix", group: "grp_math" },
+      { id: "math_fraction", emoji: "&#189;", title: "分数の計算", desc: "通分・約分つき", type: "math", mathType: "fraction", group: "grp_math" },
+      { id: "math_decimal", emoji: "&#128290;", title: "小数の計算", desc: "＋−×をマスター", type: "math", mathType: "decimal", group: "grp_math" },
+      { id: "math_gcdlcm", emoji: "&#128270;", title: "最大公約数・最小公倍数", desc: "2つの数から求めよう", type: "math", mathType: "gcdLcm", group: "grp_math" },
+      { id: "math_trick", emoji: "&#128161;", title: "計算の工夫", desc: "暗算力をきたえる", type: "math", mathType: "calcTrick", group: "grp_math" },
+      { id: "math_unit", emoji: "&#128207;", title: "単位換算", desc: "長さ・重さ・かさ", type: "math", mathType: "unitConvert", group: "grp_math" },
+      { id: "math_divisibility", emoji: "&#128290;", title: "倍数・約数", desc: "約数をぜんぶ答えよう", type: "math", mathType: "divisibility", group: "grp_math" },
+      { id: "math_mixed", emoji: "&#129518;", title: "四則演算ミックス", desc: "＋−×÷ ぜんぶ", type: "math", mathType: "mixedAll", group: "grp_math" },
+      { id: "math_mult", emoji: "&#10006;", title: "かけ算", desc: "2ケタ×1ケタ", type: "math", mathType: "multiplication", group: "grp_math" },
+      { id: "math_div", emoji: "&#10135;", title: "わり算", desc: "わりきれる問題", type: "math", mathType: "division", group: "grp_math" },
+      // 国語
+      { id: "kanji_write_3", emoji: "&#9997;", title: "漢字の書き（3年生）", desc: "よみ→漢字を書こう 200字", type: "kanjiWrite", grades: [3], group: "grp_japanese" },
+      { id: "kanji_123", emoji: "&#128209;", title: "漢字の読み（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3], group: "grp_japanese" },
+      { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro", group: "grp_japanese" },
+      { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro", group: "grp_japanese" },
+      // 理科
+      { id: "science_all", emoji: "&#128300;", title: "全分野ミックス", desc: "100問からランダム", type: "science", scienceCategory: "all", group: "grp_science" },
+      { id: "science_plants", emoji: "&#127807;", title: "植物", desc: "光合成・花のつくり・分類", type: "science", scienceCategory: "plants", group: "grp_science" },
+      { id: "science_animals", emoji: "&#128027;", title: "動物・昆虫", desc: "昆虫・脊椎動物・食物連鎖", type: "science", scienceCategory: "animals", group: "grp_science" },
+      { id: "science_body", emoji: "&#129504;", title: "人のからだ", desc: "消化・血液・呼吸・骨", type: "science", scienceCategory: "humanBody", group: "grp_science" },
+      { id: "science_weather", emoji: "&#127783;", title: "天気・気象", desc: "雲・台風・百葉箱", type: "science", scienceCategory: "weather", group: "grp_science" },
+      { id: "science_astro", emoji: "&#127771;", title: "天体・宇宙", desc: "月・太陽・星座・惑星", type: "science", scienceCategory: "astronomy", group: "grp_science" },
+      { id: "science_matter", emoji: "&#9878;", title: "物質・水溶液", desc: "三態・リトマス・金属", type: "science", scienceCategory: "matter", group: "grp_science" },
+      { id: "science_energy", emoji: "&#9889;", title: "力・エネルギー", desc: "てこ・電気・磁石・光", type: "science", scienceCategory: "energy", group: "grp_science" },
+      { id: "science_earth", emoji: "&#127964;", title: "大地のつくり", desc: "地層・化石・地震・火山", type: "science", scienceCategory: "earthScience", group: "grp_science" },
+      // 社会 - 地理
+      { id: "map_symbol", emoji: "&#128506;", title: "地図記号", desc: "地図記号をおぼえよう", type: "mapSymbol", group: "grp_social" },
+      { id: "prefecture", emoji: "&#128510;", title: "都道府県", desc: "47都道府県", type: "prefecture", group: "grp_social" },
+      { id: "geo_all", emoji: "&#127758;", title: "地理・産業ミックス", desc: "農業・水産・工業・貿易・気候", type: "geoIndustry", geoCategory: "all", group: "grp_social" },
+      { id: "geo_agri", emoji: "&#127806;", title: "農業", desc: "米・果物・野菜・畜産", type: "geoIndustry", geoCategory: "agriculture", group: "grp_social" },
+      { id: "geo_fish", emoji: "&#127843;", title: "水産業", desc: "漁港・養殖・200海里", type: "geoIndustry", geoCategory: "fishery", group: "grp_social" },
+      { id: "geo_industry", emoji: "&#127981;", title: "工業", desc: "工業地帯・自動車・IC", type: "geoIndustry", geoCategory: "industry", group: "grp_social" },
+      { id: "geo_trade", emoji: "&#128674;", title: "貿易・輸送", desc: "輸出入・加工貿易", type: "geoIndustry", geoCategory: "trade", group: "grp_social" },
+      { id: "geo_climate", emoji: "&#127780;", title: "気候・地形", desc: "季節風・山脈・河川", type: "geoIndustry", geoCategory: "climate", group: "grp_social" },
+      // 社会 - 歴史
+      { id: "history_all", emoji: "&#128336;", title: "歴史ミックス", desc: "縄文〜現代 100問", type: "history", historyCategory: "all", group: "grp_social" },
+      { id: "history_ancient", emoji: "&#128081;", title: "古代〜平安", desc: "聖徳太子・奈良・平安", type: "history", historyCategory: "ancient", group: "grp_social" },
+      { id: "history_medieval", emoji: "&#9876;", title: "鎌倉・室町", desc: "幕府・元寇・金閣銀閣", type: "history", historyCategory: "medieval", group: "grp_social" },
+      { id: "history_early", emoji: "&#9876;", title: "安土桃山・江戸", desc: "信長・秀吉・家康", type: "history", historyCategory: "earlyModern", group: "grp_social" },
+      { id: "history_modern", emoji: "&#127981;", title: "明治〜昭和前期", desc: "明治維新・戦争", type: "history", historyCategory: "modern", group: "grp_social" },
+      { id: "history_contemporary", emoji: "&#127758;", title: "戦後〜現代", desc: "憲法・高度成長・冷戦", type: "history", historyCategory: "contemporary", group: "grp_social" },
+      { id: "history_timeline", emoji: "&#128336;", title: "年号・時代順", desc: "中受定番の年号", type: "history", historyCategory: "timeline", group: "grp_social" },
+      // 社会 - 公民
+      { id: "civics_all", emoji: "&#9878;", title: "公民ミックス", desc: "憲法・政治・国際・経済", type: "civics", civicsCategory: "all", group: "grp_social" },
+      { id: "civics_constitution", emoji: "&#128218;", title: "日本国憲法", desc: "三大原則・人権・三大義務", type: "civics", civicsCategory: "constitution", group: "grp_social" },
+      { id: "civics_government", emoji: "&#127963;", title: "三権分立・政治", desc: "国会・内閣・裁判所・選挙", type: "civics", civicsCategory: "government", group: "grp_social" },
+      { id: "civics_localGov", emoji: "&#127968;", title: "地方自治", desc: "知事・直接請求権・地方税", type: "civics", civicsCategory: "localGov", group: "grp_social" },
+      { id: "civics_international", emoji: "&#127758;", title: "国際社会", desc: "国連・PKO・SDGs・領土", type: "civics", civicsCategory: "international", group: "grp_social" },
+      { id: "civics_economy", emoji: "&#128176;", title: "くらしと経済", desc: "税金・社会保障・日本銀行", type: "civics", civicsCategory: "economy", group: "grp_social" },
     ]
   },
   hikari: {
@@ -219,7 +232,9 @@ function selectProfile(profile) {
   showMenu();
 }
 
-function showMenu() {
+let currentMenuGroup = null;
+
+function showMenu(groupId) {
   pushAppState('menu');
   const profile = PROFILES[currentProfile];
   document.getElementById('menu-title').innerHTML = `${profile.name}のメニュー`;
@@ -235,7 +250,54 @@ function showMenu() {
   const grid = document.getElementById('menu-grid');
   grid.innerHTML = '';
 
-  profile.categories.forEach(cat => {
+  // グループ対応: groupsが定義されていてgroupIdが指定されていない場合はグループ一覧
+  if (profile.groups && !groupId) {
+    currentMenuGroup = null;
+    profile.groups.forEach(grp => {
+      const cats = profile.categories.filter(c => c.group === grp.id);
+      const div = document.createElement('div');
+      div.className = 'menu-item menu-group-item';
+      div.style.borderLeft = `5px solid ${grp.color}`;
+      div.onclick = () => showMenu(grp.id);
+
+      // グループ全体の進捗を集計
+      let totalItems = 0, totalMastered = 0;
+      cats.forEach(cat => {
+        if (cat.type !== 'bookRecommendation') {
+          const srData = getSRData(currentProfile, cat.id);
+          const items = countCategoryItems(cat);
+          totalItems += items;
+          totalMastered += Object.values(srData).filter(s => s.correct >= 2 && s.weight < 0.8).length;
+        }
+      });
+      const progressText = totalItems > 0 ? `${totalMastered} / ${totalItems} マスター` : `${cats.length}種目`;
+
+      div.innerHTML = `
+        <div class="menu-emoji" style="font-size:2.8em;">${grp.emoji}</div>
+        <div class="menu-title" style="font-size:1.3em;">${grp.title}</div>
+        <div class="menu-desc">${grp.desc}</div>
+        <div class="menu-progress">${progressText}</div>
+      `;
+      grid.appendChild(div);
+    });
+    showScreen('menu');
+    return;
+  }
+
+  // グループ内のカテゴリ一覧、またはグループなしプロフィール
+  currentMenuGroup = groupId || null;
+  const catsToShow = groupId
+    ? profile.categories.filter(c => c.group === groupId)
+    : profile.categories;
+
+  if (groupId) {
+    const grp = profile.groups.find(g => g.id === groupId);
+    if (grp) {
+      document.getElementById('menu-title').innerHTML = `${profile.name}の${grp.title}`;
+    }
+  }
+
+  catsToShow.forEach(cat => {
     const div = document.createElement('div');
     div.className = 'menu-item';
     div.onclick = () => cat.type === 'bookRecommendation' ? showBooks(cat) : startQuiz(cat);
@@ -1306,7 +1368,24 @@ function showResult() {
 }
 
 function endQuiz() {
-  showMenu();
+  // クイズ終了時、グループ内サブメニューに戻る
+  const profile = PROFILES[currentProfile];
+  if (profile.groups && currentCategory && currentCategory.group) {
+    showMenu(currentCategory.group);
+  } else {
+    showMenu();
+  }
+}
+
+function menuBack() {
+  const profile = PROFILES[currentProfile];
+  if (profile.groups && currentMenuGroup) {
+    // グループ内にいる→グループ一覧に戻る
+    showMenu();
+  } else {
+    // グループ一覧 or グループなし→プロフィール選択に戻る
+    showScreen('profile');
+  }
 }
 
 // --- 四桁の数字の読み方 ---
