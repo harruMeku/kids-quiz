@@ -34,7 +34,8 @@ const PROFILES = {
       { id: "math_mixed", emoji: "&#129518;", title: "四則演算ミックス", desc: "＋−×÷ ぜんぶ", type: "math", mathType: "mixedAll" },
       { id: "math_mult", emoji: "&#10006;", title: "かけ算", desc: "2ケタ×1ケタ", type: "math", mathType: "multiplication" },
       { id: "math_div", emoji: "&#10135;", title: "わり算", desc: "わりきれる問題", type: "math", mathType: "division" },
-      { id: "kanji_123", emoji: "&#128209;", title: "漢字（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3] },
+      { id: "kanji_write_3", emoji: "&#9997;", title: "漢字の書き（3年生）", desc: "よみ→漢字を書こう 200字", type: "kanjiWrite", grades: [3] },
+      { id: "kanji_123", emoji: "&#128209;", title: "漢字の読み（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3] },
       { id: "map_symbol", emoji: "&#128506;", title: "地図記号", desc: "地図記号をおぼえよう", type: "mapSymbol" },
       { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro" },
       { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro" },
@@ -231,7 +232,7 @@ function showMenu() {
 }
 
 function countCategoryItems(cat) {
-  if (cat.type === 'kanji') {
+  if (cat.type === 'kanji' || cat.type === 'kanjiWrite') {
     if (typeof KANJI_DATA === 'undefined') return 0;
     return cat.grades.reduce((sum, g) => sum + (KANJI_DATA[g] || []).length, 0);
   }
@@ -277,6 +278,7 @@ function startQuiz(category) {
 function generateQuestions(category) {
   switch (category.type) {
     case 'kanji': return generateKanjiQuestions(category);
+    case 'kanjiWrite': return generateKanjiWriteQuestions(category);
     case 'math': return generateMathQuestions(category);
     case 'prefecture': return generatePrefectureQuestions(category);
     case 'mapSymbol': return generateMapSymbolQuestions(category);
@@ -309,6 +311,26 @@ function generateKanjiQuestions(category) {
     hint: `ヒント: ${s.item.kanji}`,
     answer: s.item.wordReading,
     display: ''
+  }));
+}
+
+function generateKanjiWriteQuestions(category) {
+  let pool = [];
+  category.grades.forEach(g => {
+    if (KANJI_DATA[g]) {
+      pool = pool.concat(KANJI_DATA[g].map(k => ({...k, grade: g})));
+    }
+  });
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+  return selected.map(s => ({
+    type: 'numberReading',
+    id: s.id,
+    label: `${s.item.grade}年生の漢字（書き）`,
+    question: `「${s.item.wordReading}」を 漢字で書こう`,
+    answer: s.item.word,
+    display: '',
+    hint: ''
   }));
 }
 
