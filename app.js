@@ -23,6 +23,8 @@ const PROFILES = {
       { id: "kanji_34", emoji: "&#9999;", title: "漢字（3・4年）", desc: "中学年の漢字", type: "kanji", grades: [3,4] },
       { id: "prefecture", emoji: "&#128510;", title: "都道府県", desc: "47都道府県", type: "prefecture" },
       { id: "science_all_k", emoji: "&#128300;", title: "理科（全分野）", desc: "中受理科の土台知識100問", type: "science", scienceCategory: "all" },
+      { id: "history_all_k", emoji: "&#127981;", title: "歴史（全時代）", desc: "縄文〜現代まで100問", type: "history", historyCategory: "all" },
+      { id: "history_timeline_k", emoji: "&#128336;", title: "年号・時代順", desc: "中受定番の年号15問", type: "history", historyCategory: "timeline" },
       { id: "kaguya", emoji: "💕", title: "かぐや様は告らせたい", desc: "漫画クイズ", type: "kaguya" },
       { id: "reading_k", emoji: "📚", title: "よみもの", desc: "読んで考えよう", type: "reading_kanako" },
       { id: "books_k", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "kanako" },
@@ -54,6 +56,25 @@ const PROFILES = {
       { id: "science_matter", emoji: "&#9878;", title: "物質・水溶液", desc: "三態・リトマス・金属", type: "science", scienceCategory: "matter" },
       { id: "science_energy", emoji: "&#9889;", title: "力・エネルギー", desc: "てこ・電気・磁石・光", type: "science", scienceCategory: "energy" },
       { id: "science_earth", emoji: "&#127964;", title: "大地のつくり", desc: "地層・化石・地震・火山", type: "science", scienceCategory: "earthScience" },
+      { id: "civics_all", emoji: "&#9878;", title: "公民（全分野）", desc: "憲法・政治・国際・経済55問", type: "civics", civicsCategory: "all" },
+      { id: "civics_constitution", emoji: "&#128218;", title: "日本国憲法", desc: "三大原則・人権・三大義務", type: "civics", civicsCategory: "constitution" },
+      { id: "civics_government", emoji: "&#127963;", title: "三権分立・政治", desc: "国会・内閣・裁判所・選挙", type: "civics", civicsCategory: "government" },
+      { id: "civics_localGov", emoji: "&#127968;", title: "地方自治", desc: "知事・直接請求権・地方税", type: "civics", civicsCategory: "localGov" },
+      { id: "civics_international", emoji: "&#127758;", title: "国際社会", desc: "国連・PKO・SDGs・領土", type: "civics", civicsCategory: "international" },
+      { id: "civics_economy", emoji: "&#128176;", title: "くらしと経済", desc: "税金・社会保障・日本銀行", type: "civics", civicsCategory: "economy" },
+      { id: "geo_all", emoji: "&#127758;", title: "地理・産業（全分野）", desc: "農業・水産・工業・貿易・気候60問", type: "geoIndustry", geoCategory: "all" },
+      { id: "geo_agri", emoji: "&#127806;", title: "農業", desc: "米・果物・野菜・畜産", type: "geoIndustry", geoCategory: "agriculture" },
+      { id: "geo_fish", emoji: "&#127843;", title: "水産業", desc: "漁港・養殖・200海里", type: "geoIndustry", geoCategory: "fishery" },
+      { id: "geo_industry", emoji: "&#127981;", title: "工業", desc: "工業地帯・自動車・IC", type: "geoIndustry", geoCategory: "industry" },
+      { id: "geo_trade", emoji: "&#128674;", title: "貿易・輸送", desc: "輸出入・加工貿易", type: "geoIndustry", geoCategory: "trade" },
+      { id: "geo_climate", emoji: "&#127780;", title: "気候・地形", desc: "季節風・山脈・河川", type: "geoIndustry", geoCategory: "climate" },
+      { id: "history_all", emoji: "&#127981;", title: "歴史（全時代）", desc: "縄文〜現代まで100問", type: "history", historyCategory: "all" },
+      { id: "history_ancient", emoji: "&#128081;", title: "古代〜平安", desc: "聖徳太子・奈良・平安の20問", type: "history", historyCategory: "ancient" },
+      { id: "history_medieval", emoji: "&#9876;", title: "鎌倉・室町", desc: "幕府・元寇・金閣銀閣の15問", type: "history", historyCategory: "medieval" },
+      { id: "history_early", emoji: "&#9876;", title: "安土桃山・江戸", desc: "信長・秀吉・家康の20問", type: "history", historyCategory: "earlyModern" },
+      { id: "history_modern", emoji: "&#127981;", title: "明治〜昭和前期", desc: "明治維新・戦争の20問", type: "history", historyCategory: "modern" },
+      { id: "history_contemporary", emoji: "&#127758;", title: "戦後〜現代", desc: "憲法・高度成長・冷戦の10問", type: "history", historyCategory: "contemporary" },
+      { id: "history_timeline", emoji: "&#128336;", title: "年号・時代順", desc: "中受定番の年号15問", type: "history", historyCategory: "timeline" },
       { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro" },
       { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro" },
     ]
@@ -281,6 +302,27 @@ function countCategoryItems(cat) {
     }
     return (SCIENCE_DATA[cat.scienceCategory]?.questions || []).length;
   }
+  if (cat.type === 'civics') {
+    if (typeof CIVICS_DATA === 'undefined') return 0;
+    if (cat.civicsCategory === 'all') {
+      return Object.values(CIVICS_DATA).reduce((sum, c) => sum + c.questions.length, 0);
+    }
+    return (CIVICS_DATA[cat.civicsCategory]?.questions || []).length;
+  }
+  if (cat.type === 'history') {
+    if (typeof HISTORY_DATA === 'undefined') return 0;
+    if (cat.historyCategory === 'all') {
+      return Object.values(HISTORY_DATA).reduce((sum, c) => sum + c.questions.length, 0);
+    }
+    return (HISTORY_DATA[cat.historyCategory]?.questions || []).length;
+  }
+  if (cat.type === 'geoIndustry') {
+    if (typeof GEOGRAPHY_INDUSTRY_DATA === 'undefined') return 0;
+    if (cat.geoCategory === 'all') {
+      return Object.values(GEOGRAPHY_INDUSTRY_DATA).reduce((sum, c) => sum + c.questions.length, 0);
+    }
+    return (GEOGRAPHY_INDUSTRY_DATA[cat.geoCategory]?.questions || []).length;
+  }
   if (cat.type === 'numberReading') return 0; // infinite
   return 0; // math is infinite
 }
@@ -315,6 +357,9 @@ function generateQuestions(category) {
     case 'kaguya': return generateKaguyaQuestions(category);
     case 'pippi': return generatePippiQuestions(category);
     case 'science': return generateScienceQuestions(category);
+    case 'civics': return generateCivicsQuestions(category);
+    case 'history': return generateHistoryQuestions(category);
+    case 'geoIndustry': return generateGeoIndustryQuestions(category);
     default: return [];
   }
 }
@@ -1092,6 +1137,119 @@ function generateScienceQuestions(category) {
   return selected.map(s => {
     const item = s.item;
     const catName = SCIENCE_DATA[item._cat]?.name || '理科';
+    return {
+      type: 'choice',
+      id: s.id,
+      label: catName,
+      question: item.q,
+      answer: item.a,
+      hint: '',
+      explanation: item.explanation || '',
+      choices: item.choices ? [...item.choices].sort(() => Math.random() - 0.5) : [],
+      display: ''
+    };
+  });
+}
+
+// --- 公民クイズ生成 ---
+function generateCivicsQuestions(category) {
+  if (typeof CIVICS_DATA === 'undefined') return [];
+
+  let pool = [];
+  if (category.civicsCategory === 'all') {
+    Object.entries(CIVICS_DATA).forEach(([catKey, catObj]) => {
+      catObj.questions.forEach((item, i) => {
+        pool.push({ ...item, name: `civics_${catKey}_${i}`, _cat: catKey });
+      });
+    });
+  } else {
+    const catObj = CIVICS_DATA[category.civicsCategory];
+    if (!catObj) return [];
+    catObj.questions.forEach((item, i) => {
+      pool.push({ ...item, name: `civics_${category.civicsCategory}_${i}`, _cat: category.civicsCategory });
+    });
+  }
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+
+  return selected.map(s => {
+    const item = s.item;
+    const catName = CIVICS_DATA[item._cat]?.name || '公民';
+    return {
+      type: 'choice',
+      id: s.id,
+      label: catName,
+      question: item.q,
+      answer: item.a,
+      hint: '',
+      explanation: item.explanation || '',
+      choices: item.choices ? [...item.choices].sort(() => Math.random() - 0.5) : [],
+      display: ''
+    };
+  });
+}
+
+// --- 歴史クイズ生成 ---
+function generateHistoryQuestions(category) {
+  if (typeof HISTORY_DATA === 'undefined') return [];
+
+  let pool = [];
+  if (category.historyCategory === 'all') {
+    Object.entries(HISTORY_DATA).forEach(([catKey, catObj]) => {
+      catObj.questions.forEach((item, i) => {
+        pool.push({ ...item, name: `history_${catKey}_${i}`, _cat: catKey });
+      });
+    });
+  } else {
+    const catObj = HISTORY_DATA[category.historyCategory];
+    if (!catObj) return [];
+    catObj.questions.forEach((item, i) => {
+      pool.push({ ...item, name: `history_${category.historyCategory}_${i}`, _cat: category.historyCategory });
+    });
+  }
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+
+  return selected.map(s => {
+    const item = s.item;
+    const catName = HISTORY_DATA[item._cat]?.name || '歴史';
+    return {
+      type: 'choice',
+      id: s.id,
+      label: catName,
+      question: item.q,
+      answer: item.a,
+      hint: '',
+      explanation: item.explanation || '',
+      choices: item.choices ? [...item.choices].sort(() => Math.random() - 0.5) : [],
+      display: ''
+    };
+  });
+}
+
+function generateGeoIndustryQuestions(category) {
+  if (typeof GEOGRAPHY_INDUSTRY_DATA === 'undefined') return [];
+
+  let pool = [];
+  if (category.geoCategory === 'all') {
+    Object.entries(GEOGRAPHY_INDUSTRY_DATA).forEach(([catKey, catObj]) => {
+      catObj.questions.forEach((item, i) => {
+        pool.push({ ...item, name: `geo_${catKey}_${i}`, _cat: catKey });
+      });
+    });
+  } else {
+    const catObj = GEOGRAPHY_INDUSTRY_DATA[category.geoCategory];
+    if (!catObj) return [];
+    catObj.questions.forEach((item, i) => {
+      pool.push({ ...item, name: `geo_${category.geoCategory}_${i}`, _cat: category.geoCategory });
+    });
+  }
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+
+  return selected.map(s => {
+    const item = s.item;
+    const catName = GEOGRAPHY_INDUSTRY_DATA[item._cat]?.name || '地理・産業';
     return {
       type: 'choice',
       id: s.id,
