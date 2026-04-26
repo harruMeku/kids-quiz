@@ -22,6 +22,7 @@ const PROFILES = {
       { id: "kanji_56", emoji: "&#128221;", title: "漢字（5・6年）", desc: "高学年の漢字", type: "kanji", grades: [5,6] },
       { id: "kanji_34", emoji: "&#9999;", title: "漢字（3・4年）", desc: "中学年の漢字", type: "kanji", grades: [3,4] },
       { id: "prefecture", emoji: "&#128510;", title: "都道府県", desc: "47都道府県", type: "prefecture" },
+      { id: "science_all_k", emoji: "&#128300;", title: "理科（全分野）", desc: "中受理科の土台知識100問", type: "science", scienceCategory: "all" },
       { id: "kaguya", emoji: "💕", title: "かぐや様は告らせたい", desc: "漫画クイズ", type: "kaguya" },
       { id: "reading_k", emoji: "📚", title: "よみもの", desc: "読んで考えよう", type: "reading_kanako" },
       { id: "books_k", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "kanako" },
@@ -31,12 +32,28 @@ const PROFILES = {
     name: "友博",
     grade: "小学4年生",
     categories: [
+      { id: "math_juken", emoji: "&#127919;", title: "受験算数ミックス", desc: "分数・小数・工夫すべて", type: "math", mathType: "jukenMix" },
+      { id: "math_fraction", emoji: "&#189;", title: "分数の計算", desc: "通分・約分つき", type: "math", mathType: "fraction" },
+      { id: "math_decimal", emoji: "&#128290;", title: "小数の計算", desc: "＋−×をマスター", type: "math", mathType: "decimal" },
+      { id: "math_gcdlcm", emoji: "&#128270;", title: "最大公約数・最小公倍数", desc: "2つの数から求めよう", type: "math", mathType: "gcdLcm" },
+      { id: "math_trick", emoji: "&#128161;", title: "計算の工夫", desc: "暗算力をきたえる", type: "math", mathType: "calcTrick" },
+      { id: "math_unit", emoji: "&#128207;", title: "単位換算", desc: "長さ・重さ・かさ", type: "math", mathType: "unitConvert" },
+      { id: "math_divisibility", emoji: "&#128290;", title: "倍数・約数", desc: "約数をぜんぶ答えよう", type: "math", mathType: "divisibility" },
       { id: "math_mixed", emoji: "&#129518;", title: "四則演算ミックス", desc: "＋−×÷ ぜんぶ", type: "math", mathType: "mixedAll" },
       { id: "math_mult", emoji: "&#10006;", title: "かけ算", desc: "2ケタ×1ケタ", type: "math", mathType: "multiplication" },
       { id: "math_div", emoji: "&#10135;", title: "わり算", desc: "わりきれる問題", type: "math", mathType: "division" },
       { id: "kanji_write_3", emoji: "&#9997;", title: "漢字の書き（3年生）", desc: "よみ→漢字を書こう 200字", type: "kanjiWrite", grades: [3] },
       { id: "kanji_123", emoji: "&#128209;", title: "漢字の読み（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3] },
       { id: "map_symbol", emoji: "&#128506;", title: "地図記号", desc: "地図記号をおぼえよう", type: "mapSymbol" },
+      { id: "science_all", emoji: "&#128300;", title: "理科（全分野）", desc: "植物・動物・天気・宇宙など", type: "science", scienceCategory: "all" },
+      { id: "science_plants", emoji: "&#127807;", title: "植物", desc: "光合成・花のつくり・分類", type: "science", scienceCategory: "plants" },
+      { id: "science_animals", emoji: "&#128027;", title: "動物・昆虫", desc: "昆虫・脊椎動物・食物連鎖", type: "science", scienceCategory: "animals" },
+      { id: "science_body", emoji: "&#129504;", title: "人のからだ", desc: "消化・血液・呼吸・骨", type: "science", scienceCategory: "humanBody" },
+      { id: "science_weather", emoji: "&#127783;", title: "天気・気象", desc: "雲・台風・百葉箱", type: "science", scienceCategory: "weather" },
+      { id: "science_astro", emoji: "&#127771;", title: "天体・宇宙", desc: "月・太陽・星座・惑星", type: "science", scienceCategory: "astronomy" },
+      { id: "science_matter", emoji: "&#9878;", title: "物質・水溶液", desc: "三態・リトマス・金属", type: "science", scienceCategory: "matter" },
+      { id: "science_energy", emoji: "&#9889;", title: "力・エネルギー", desc: "てこ・電気・磁石・光", type: "science", scienceCategory: "energy" },
+      { id: "science_earth", emoji: "&#127964;", title: "大地のつくり", desc: "地層・化石・地震・火山", type: "science", scienceCategory: "earthScience" },
       { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro" },
       { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro" },
     ]
@@ -257,6 +274,13 @@ function countCategoryItems(cat) {
     if (typeof PIPPI_QUIZ === 'undefined') return 0;
     return Object.values(PIPPI_QUIZ).reduce((sum, arr) => sum + arr.length, 0);
   }
+  if (cat.type === 'science') {
+    if (typeof SCIENCE_DATA === 'undefined') return 0;
+    if (cat.scienceCategory === 'all') {
+      return Object.values(SCIENCE_DATA).reduce((sum, c) => sum + c.questions.length, 0);
+    }
+    return (SCIENCE_DATA[cat.scienceCategory]?.questions || []).length;
+  }
   if (cat.type === 'numberReading') return 0; // infinite
   return 0; // math is infinite
 }
@@ -290,6 +314,7 @@ function generateQuestions(category) {
     case 'numberReading': return generateNumberReadingQuestions(category);
     case 'kaguya': return generateKaguyaQuestions(category);
     case 'pippi': return generatePippiQuestions(category);
+    case 'science': return generateScienceQuestions(category);
     default: return [];
   }
 }
@@ -1038,6 +1063,44 @@ function generateOltaQuestions(category) {
       accept: item.accept || [],
       explanation: item.explanation || '',
       link: item.link || '',
+      display: ''
+    };
+  });
+}
+
+// --- 理科クイズ生成 ---
+function generateScienceQuestions(category) {
+  if (typeof SCIENCE_DATA === 'undefined') return [];
+
+  let pool = [];
+  if (category.scienceCategory === 'all') {
+    Object.entries(SCIENCE_DATA).forEach(([catKey, catObj]) => {
+      catObj.questions.forEach((item, i) => {
+        pool.push({ ...item, name: `science_${catKey}_${i}`, _cat: catKey });
+      });
+    });
+  } else {
+    const catObj = SCIENCE_DATA[category.scienceCategory];
+    if (!catObj) return [];
+    catObj.questions.forEach((item, i) => {
+      pool.push({ ...item, name: `science_${category.scienceCategory}_${i}`, _cat: category.scienceCategory });
+    });
+  }
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+
+  return selected.map(s => {
+    const item = s.item;
+    const catName = SCIENCE_DATA[item._cat]?.name || '理科';
+    return {
+      type: 'choice',
+      id: s.id,
+      label: catName,
+      question: item.q,
+      answer: item.a,
+      hint: '',
+      explanation: item.explanation || '',
+      choices: item.choices ? [...item.choices].sort(() => Math.random() - 0.5) : [],
       display: ''
     };
   });
