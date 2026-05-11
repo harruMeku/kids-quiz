@@ -54,6 +54,10 @@ const PROFILES = {
       // 国語
       { id: "kanji_write_3", emoji: "&#9997;", title: "漢字の書き（3年生）", desc: "よみ→漢字を書こう 200字", type: "kanjiWrite", grades: [3], group: "grp_japanese" },
       { id: "kanji_123", emoji: "&#128209;", title: "漢字の読み（1〜3年）", desc: "小3までの漢字 440字", type: "kanji", grades: [1,2,3], group: "grp_japanese" },
+      { id: "idiom_all", emoji: "&#128161;", title: "四字熟語・ことわざ", desc: "意味を4択で答えよう", type: "idiom", idiomCategory: "all", group: "grp_japanese" },
+      { id: "idiom_yoji", emoji: "&#128175;", title: "四字熟語", desc: "四字熟語の意味クイズ", type: "idiom", idiomCategory: "yojijukugo", group: "grp_japanese" },
+      { id: "idiom_koto", emoji: "&#128172;", title: "ことわざ・慣用句", desc: "ことわざの意味クイズ", type: "idiom", idiomCategory: "kotowaza", group: "grp_japanese" },
+      { id: "idiom_fukushi", emoji: "&#128218;", title: "慣用表現・副詞", desc: "読解に出る言葉の意味25問", type: "idiom", idiomCategory: "kanyou_fukushi", group: "grp_japanese" },
       // トップレベル（グループ外）
       { id: "reading_t", emoji: "📖", title: "よみもの", desc: "おもしろい はなしを よもう", type: "reading_tomohiro" },
       { id: "books_t", emoji: "📚", title: "おすすめの本", desc: "次は何を読もう？", type: "bookRecommendation", bookProfile: "tomohiro" },
@@ -453,6 +457,7 @@ function generateQuestions(category) {
     case 'civics': return generateCivicsQuestions(category);
     case 'history': return generateHistoryQuestions(category);
     case 'geoIndustry': return generateGeoIndustryQuestions(category);
+    case 'idiom': return generateIdiomQuestions(category);
     default: return [];
   }
 }
@@ -1245,6 +1250,44 @@ function generateScienceQuestions(category) {
 }
 
 // --- 公民クイズ生成 ---
+// --- 四字熟語・ことわざクイズ生成 ---
+function generateIdiomQuestions(category) {
+  if (typeof IDIOMS_DATA === 'undefined') return [];
+
+  let pool = [];
+  if (category.idiomCategory === 'all') {
+    Object.entries(IDIOMS_DATA).forEach(([catKey, catObj]) => {
+      catObj.questions.forEach((item, i) => {
+        pool.push({ ...item, name: `idiom_${catKey}_${i}`, _cat: catKey });
+      });
+    });
+  } else {
+    const catObj = IDIOMS_DATA[category.idiomCategory];
+    if (!catObj) return [];
+    catObj.questions.forEach((item, i) => {
+      pool.push({ ...item, name: `idiom_${category.idiomCategory}_${i}`, _cat: category.idiomCategory });
+    });
+  }
+
+  const selected = weightedSelect(pool, currentProfile, category.id, QUESTIONS_PER_ROUND);
+
+  return selected.map(s => {
+    const item = s.item;
+    const catName = IDIOMS_DATA[item._cat]?.name || '四字熟語・ことわざ';
+    return {
+      type: 'choice',
+      id: s.id,
+      label: catName,
+      question: item.q,
+      answer: item.a,
+      hint: '',
+      explanation: item.explanation || '',
+      choices: item.choices ? [...item.choices].sort(() => Math.random() - 0.5) : [],
+      display: ''
+    };
+  });
+}
+
 function generateCivicsQuestions(category) {
   if (typeof CIVICS_DATA === 'undefined') return [];
 
