@@ -80,6 +80,7 @@ const PROFILES = {
       { id: "geo_industry", emoji: "&#127981;", title: "工業", desc: "工業地帯・自動車・IC", type: "geoIndustry", geoCategory: "industry", group: "grp_social" },
       { id: "geo_trade", emoji: "&#128674;", title: "貿易・輸送", desc: "輸出入・加工貿易", type: "geoIndustry", geoCategory: "trade", group: "grp_social" },
       { id: "geo_climate", emoji: "&#127780;", title: "気候・地形", desc: "季節風・山脈・河川", type: "geoIndustry", geoCategory: "climate", group: "grp_social" },
+      { id: "geo_sea", emoji: "&#127754;", title: "海・海流", desc: "親潮・黒潮・潮目・流氷", type: "geoIndustry", geoCategory: "sea", group: "grp_social" },
       // 社会 - 歴史
       { id: "history_all", emoji: "&#128336;", title: "歴史ミックス", desc: "縄文〜現代 100問", type: "history", historyCategory: "all", group: "grp_social" },
       { id: "history_ancient", emoji: "&#128081;", title: "古代〜平安", desc: "聖徳太子・奈良・平安", type: "history", historyCategory: "ancient", group: "grp_social" },
