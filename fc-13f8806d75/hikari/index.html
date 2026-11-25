@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <style>html,body{margin:0}[hidden]{display:none!important}</style>
+<script src="../fclog.js"></script>
 </head>
 <body>
 <title>ひかりのフラッシュカード</title>
@@ -389,7 +390,7 @@ function startCourse(key){
   let cards;
   if(key==='mix') cards=shuffle(BANK.flatMap((list,i)=>shuffle(list.map(x=>toCard(x,i))).slice(0,MIX[i])));
   else cards=shuffle(BANK[key].map(x=>toCard(x,key))).slice(0,10);
-  queue=cards; idx=0; phase='main'; stars=0; rstars=0; missed=[];
+  queue=cards; idx=0; phase='main'; stars=0; rstars=0; missed=[]; roundMiss=[]; roundN=cards.length;
   $('stars').textContent='⭐ 0';
   $('playMsg').textContent='じぶんで こたえを いってから めくろう！';
   show('play'); draw();
@@ -440,8 +441,9 @@ function noteMark(c,ok){
   if(phase!=='main') return;
   store.miss=store.miss||{};
   const e=store.miss[c.q]||(store.miss[c.q]={n:0,x:0,sub:c.sub,a:c.a});
-  e.n++; if(!ok) e.x++; save();
+  e.n++; if(!ok){ e.x++; roundMiss.push(SUBJ[c.sub].name+'：'+c.q); } save();
 }
+let roundMiss=[], roundN=0;
 $('correct').onclick=()=>{
   noteMark(queue[idx],true);
   if(phase==='main'){stars++; popStar('⭐');}
@@ -482,6 +484,8 @@ function finish(){
   const prev=store.best[course];
   if(prev==null||stars>prev) store.best[course]=stars;
   save();
+  /* おとうさんの スプレッドシートへ きろく（GitHub Pages 版だけ） */
+  try{window.fcLog&&window.fcLog({who:'ひかり',ev:'やり終えた',mode:course==='mix'?'ぜんぶ ミックス':SUBJ[course].name,right:stars,n:roundN,miss:roundMiss})}catch(e){}
   $('finish').textContent= stars===10 ? 'パーフェクト！' : 'ぜんぶ クリア！';
   $('score').textContent= stars===10 ? '10もん ぜんぶ いっぱつで できた！ ⭐10' : '⭐ '+stars+'こ ＋ リベンジ 🌟 '+rstars+'こ';
   $('newSticker').textContent=sticker;

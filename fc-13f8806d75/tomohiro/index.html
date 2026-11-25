@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <style>html,body{margin:0}[hidden]{display:none!important}</style>
+<script src="../fclog.js"></script>
 </head>
 <body>
 <meta charset="utf-8">
@@ -248,6 +249,9 @@ function mark(ok) {
     const b = state.best[r.mode];
     if (!b || right / n > b.right / b.n) state.best[r.mode] = { right, n };
     state.done[r.mode] = (state.done[r.mode] ?? 0) + 1;
+    // お父さんのスプレッドシートへ記録（GitHub Pages 版だけ。fclog.js が無いページでは何もしない）
+    try { window.fcLog && window.fcLog({ who: '友博', ev: 'やり終えた', mode: MODES[r.mode].name, right, n,
+      miss: r.ids.filter((x, i) => !r.marks[i]).map(x => { const c = byId.get(x); return c ? c.s + '／' + c.q : x; }) }); } catch {}
   }
   save(); render(true);
 }

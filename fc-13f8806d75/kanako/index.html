@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <style>html,body{margin:0}[hidden]{display:none!important}</style>
+<script src="../fclog.js"></script>
 </head>
 <body>
 <title>英語フラッシュカード</title>
@@ -548,6 +549,9 @@ const MODE_NAME={ej:'英語 → 日本語',je:'日本語 → 英語',mix:'英→
 function finish(){
   stopTimer(); header(); $('barfill').style.width='100%';
   const n=queue.length, ok=results.filter(r=>r.ok).length, miss=results.filter(r=>!r.ok);
+  // お父さんのスプレッドシートへ記録（GitHub Pages 版だけ。fclog.js が無いページでは何もしない）
+  try{window.fcLog&&window.fcLog({who:'加奈子',ev:'やり終えた',mode:MODE_NAME[mode]+(isRetry?'（×のやり直し）':''),right:ok,n,
+    miss:miss.map(r=>{const e=r.entry,c=e.item||{};return e.type==='listen'?'リスニング '+c.id:((c.en||'')+'＝'+(c.ja||''))})})}catch{}
   let delta='';
   const key=scoreKey();
   if(!isRetry){
