@@ -144,6 +144,10 @@ section{display:grid;gap:16px}
         <li>「こくご」「さんすう」「せいかつ」は小1の範囲です。「ものしり」は学年より少し上の豆知識（チャレンジ用）です。</li>
         <li>🔊は端末の読み上げ機能を使います。シールちょうと「ベスト」の記録は、この端末の中だけに保存されます。</li>
       </ul>
+      <p style="margin:10px 0 4px;font-weight:700">「もういちど」が多かったカード</p>
+      <ul id="missList"></ul>
+      <div class="actions" style="margin-top:8px"><button id="mailGmail">お父さんに送る（Gmail）</button><button id="mailApp">メールアプリで送る</button></div>
+      <p id="mailMsg" style="margin:6px 0 0"></p>
     </details>
   </section>
 
@@ -305,7 +309,7 @@ const OOPS_R=['もう いっかい でて くるよ。こたえを よく みて
 
 /* ---------- ほぞん（この たんまつ だけ） ---------- */
 const KEY='hikari-flashcards-v2';
-const store=Object.assign({stickers:[],best:{},autoRead:false},(()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}})());
+const store=Object.assign({stickers:[],best:{},autoRead:false,miss:{}},(()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}})());
 function save(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
 
 /* ---------- よみあげ ---------- */
@@ -345,10 +349,40 @@ function renderHome(){
     b.onclick=()=>startCourse(it.key);
     wrap.append(b);
   }
+  renderMiss();
   $('stickerCount').textContent=store.stickers.length;
   $('autoRead').checked=!!store.autoRead;
   $('autoWrap').hidden=!canSpeak;
 }
+
+/* ---------- おとうさんに おくる（2026-11-26） ---------- */
+function missRows(){
+  return Object.entries(store.miss||{}).filter(([q,e])=>e.x>0)
+    .sort((a,b)=>b[1].x-a[1].x||b[1].x/b[1].n-a[1].x/a[1].n).slice(0,20);
+}
+function renderMiss(){
+  const ul=$('missList'); ul.replaceChildren();
+  const rows=missRows();
+  if(!rows.length){const li=document.createElement('li'); li.textContent='まだ ありません'; ul.append(li); return;}
+  for(const [q,e] of rows){const li=document.createElement('li'); li.textContent=SUBJ[e.sub].name+'：'+q+'（もういちど '+e.x+' / '+e.n+'かい）'; ul.append(li);}
+}
+function sendDad(subject,body,how){
+  const to=['haru5385','gmail.com'].join('@');
+  if(body.length>1800) body=body.slice(0,1800)+'\n…（つづきは省略）';
+  if(how==='gmail') window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(to)+'&su='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body),'_blank','noopener');
+  else location.href='mailto:'+to+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+function mailMiss(how){
+  const day=new Date().toLocaleDateString('ja-JP');
+  const rows=missRows();
+  const body=['ひかりのフラッシュカード 「もういちど」が多かったカード（'+day+'）','シール '+store.stickers.length+'まい','']
+    .concat(rows.length?rows.map(([q,e])=>'・'+SUBJ[e.sub].name+'：'+q+' → '+e.a+'（もういちど '+e.x+'/'+e.n+'回）'):['まだ「もういちど」の記録はありません'])
+    .concat(['','（フラッシュカードから送信）']).join('\n');
+  sendDad('ひかり フラッシュカードの記録（'+day+'）',body,how);
+  $('mailMsg').textContent='メールの画面が開いたら「送信」を押してください。';
+}
+$('mailGmail').onclick=()=>mailMiss('gmail');
+$('mailApp').onclick=()=>mailMiss('app');
 
 function startCourse(key){
   course=key;
@@ -401,7 +435,15 @@ function popStar(ch){
 }
 function updateStars(){ $('stars').firstChild.nodeValue='⭐ '+stars+(rstars?'  🌟 '+rstars:''); }
 
+/* いっぱつめの こたえだけ きろく（2026-11-26） */
+function noteMark(c,ok){
+  if(phase!=='main') return;
+  store.miss=store.miss||{};
+  const e=store.miss[c.q]||(store.miss[c.q]={n:0,x:0,sub:c.sub,a:c.a});
+  e.n++; if(!ok) e.x++; save();
+}
 $('correct').onclick=()=>{
+  noteMark(queue[idx],true);
   if(phase==='main'){stars++; popStar('⭐');}
   else {rstars++; popStar('🌟');}
   updateStars();
@@ -410,6 +452,7 @@ $('correct').onclick=()=>{
 };
 $('again').onclick=()=>{
   const c=queue[idx];
+  noteMark(c,false);
   if(phase==='main'){missed.push(c); $('playMsg').textContent=pick(OOPS);}
   else {queue.push(c); $('playMsg').textContent=pick(OOPS_R);}
   next();

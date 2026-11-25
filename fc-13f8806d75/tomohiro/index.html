@@ -145,6 +145,10 @@ textarea { width: 100%; min-height: 8em; font: inherit; font-size: .8rem; border
   <header><h1>４教科フラッシュカード</h1><small>小学４年 · 中学受験</small></header>
   <main id="game"></main>
   <section class="stats" id="stats" aria-label="記録"></section>
+  <section class="panel" id="sendBox" aria-label="お父さんに送る">
+    <div class="actions"><button type="button" class="secondary" data-action="mailGmail">×のカードをお父さんに送る（Gmail）</button><button type="button" class="secondary" data-action="mailApp">メールアプリで送る</button></div>
+    <p class="help" id="mailMsg" role="status"></p>
+  </section>
   <section class="panel" id="parentBox"></section>
   <p class="note" id="notice" hidden>このブラウザでは記録を保存できません。ページを閉じると記録は消えます。</p>
 </div>
@@ -385,6 +389,17 @@ function copyRecord() {
     navigator.clipboard.writeText(text).then(() => { box.innerHTML = '<p class="help">コピーしました。メモやLINEにはりつけられます。</p>'; }, () => show('自動でコピーできなかったので、下の文字を選んでコピーしてください。'));
   } catch { show('自動でコピーできなかったので、下の文字を選んでコピーしてください。'); }
 }
+// お父さんにメールで送る（2026-11-26）
+function sendDad(subject, body, how) {
+  const to = ['haru5385', 'gmail.com'].join('@');
+  if (body.length > 1800) body = body.slice(0, 1800) + '\n…（つづきは省略）';
+  if (how === 'gmail') window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(to) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body), '_blank', 'noopener');
+  else location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+}
+function mailRecord(how) {
+  sendDad('友博 ４教科フラッシュカードの記録（' + new Date().toLocaleDateString('ja-JP') + '）', recordText() + '\n\n（フラッシュカードから送信）', how);
+  document.getElementById('mailMsg').textContent = 'メールの画面が開いたら、そのまま「送信」をおしてね。';
+}
 function askReset() {
   document.getElementById('parentExtra').innerHTML = '<p class="help">すべての記録を消します。元にもどせません。</p><div class="actions"><button type="button" class="ng" data-action="reset">消す</button><button type="button" class="secondary" data-action="cancelReset">やめる</button></div>';
 }
@@ -407,7 +422,7 @@ const actions = {
   mix: () => begin('mix'), exam: () => begin('exam'), normal: () => begin('normal'),
   reveal, right: () => mark(true), wrong: () => mark(false), home,
   allTopics: () => { state.sel.normal = null; save(); render(); },
-  copy: copyRecord, askReset, reset, cancelReset: () => { document.getElementById('parentExtra').innerHTML = ''; },
+  copy: copyRecord, mailGmail: () => mailRecord('gmail'), mailApp: () => mailRecord('app'), askReset, reset, cancelReset: () => { document.getElementById('parentExtra').innerHTML = ''; },
 };
 document.addEventListener('click', ev => {
   const b = ev.target.closest('button[data-action]');

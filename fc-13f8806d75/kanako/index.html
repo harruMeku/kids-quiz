@@ -162,6 +162,11 @@ summary{cursor:pointer;font-weight:700;font-size:14px}
     </div>
     <button type="button" id="start" class="primary">スタート</button>
     <p class="small" id="lastline"></p>
+    <div class="row" role="group" aria-label="お父さんに送る">
+      <button type="button" id="mailgmail">にがてなカードをお父さんに送る（Gmail）</button>
+      <button type="button" id="mailapp">メールアプリで送る</button>
+    </div>
+    <p class="small" id="mailmsg" role="status"></p>
     <details id="parent">
       <summary>にがてなカード（おうちの人向け）</summary>
       <ol class="weak" id="weak"></ol>
@@ -613,6 +618,24 @@ $('copyweak').onclick=()=>{
   const done=()=>$('parentmsg').textContent='コピーしました';
   try{navigator.clipboard.writeText(text).then(done,()=>{$('parentmsg').textContent=text})}catch{$('parentmsg').textContent=text}
 };
+// ---------- お父さんにメールで送る（2026-11-26） ----------
+function sendDad(subject,body,how){
+  const to=['haru5385','gmail.com'].join('@');
+  if(body.length>1800) body=body.slice(0,1800)+'\n…（つづきは省略）';
+  if(how==='gmail') window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(to)+'&su='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body),'_blank','noopener');
+  else location.href='mailto:'+to+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+function weakMail(how){
+  const day=new Date().toLocaleDateString('ja-JP');
+  const rows=weakList();
+  const body=['加奈子の英語フラッシュカード にがてなカード（'+day+'）','']
+    .concat(rows.length?rows.map(r=>'・'+r.label+'（× '+r.miss+'/'+r.seen+'回）'):['まだ×の記録はありません'])
+    .concat(['','（フラッシュカードから送信）']).join('\n');
+  sendDad('加奈子 英語フラッシュカードの記録（'+day+'）',body,how);
+  $('mailmsg').textContent='メールの画面が開いたら、そのまま「送信」を押してね';
+}
+$('mailgmail').onclick=()=>weakMail('gmail');
+$('mailapp').onclick=()=>weakMail('app');
 let resetArmed=false;
 $('reset').onclick=()=>{
   if(!resetArmed){resetArmed=true;$('reset').textContent='本当に消す（もう一度押す）';$('parentmsg').textContent='前回の点数と×の記録が消えます';return}
