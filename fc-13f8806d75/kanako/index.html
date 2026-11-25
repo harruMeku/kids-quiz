@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>html,body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>英語フラッシュカード</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one column of ring-bound vocabulary cards (単語カード). The card is the hero; controls sit under it. */
+:root{
+  --paper:#f6f4fa;      /* page: white with a faint lilac bias */
+  --card:#ffffff;
+  --ink:#251f3b;        /* text */
+  --sub:#6a6385;        /* secondary text */
+  --line:#ddd7ea;
+  --berry:#b8326a;      /* accent */
+  --berry-soft:#f7e3ec;
+  --ok:#17806a; --ok-soft:#dff3ec;
+  --ng:#c0392b; --ng-soft:#fbe6e3;
+  --ring:#b9b2cc;
+  --f-ja:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  --f-en:"Lexend","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#17141f; --card:#221d2e; --ink:#eeeaf7; --sub:#aaa3c2; --line:#3a3350;
+  --berry:#ee7aa8; --berry-soft:#3d2333; --ok:#58c9a8; --ok-soft:#183a32; --ng:#f08a7c; --ng-soft:#41231f; --ring:#5c5474;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#17141f; --card:#221d2e; --ink:#eeeaf7; --sub:#aaa3c2; --line:#3a3350;
+  --berry:#ee7aa8; --berry-soft:#3d2333; --ok:#58c9a8; --ok-soft:#183a32; --ng:#f08a7c; --ng-soft:#41231f; --ring:#5c5474;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 var(--f-ja);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:560px;margin:0 auto;padding-block:28px 56px;display:grid;gap:18px}
+h1{font:700 clamp(24px,6vw,32px)/1.2 var(--f-ja);margin:0;text-wrap:balance}
+h1 small{display:block;font:500 13px/1.4 var(--f-ja);color:var(--sub);margin-top:6px;letter-spacing:.02em}
+[lang="en"]{font-family:var(--f-en)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;min-height:44px}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+button:disabled{cursor:default;opacity:.45}
+.primary{background:var(--berry);border-color:var(--berry);color:#fff;font-weight:700}
+:root[data-theme="dark"] .primary{color:#1a1020}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .primary{color:#1a1020}}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.modes button{text-align:left;display:grid;gap:2px;padding:10px 12px}
+.modes b{font-size:15px}
+.modes span{font-size:12px;color:var(--sub);line-height:1.4}
+.modes .wide{grid-column:1/-1}
+.range{display:flex;gap:8px;align-items:center;font-size:14px}
+.range select{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:40px;flex:1;min-width:0}
+.chip.spot{background:var(--line);color:var(--ink)}
+.modes button[aria-pressed="true"]{border-color:var(--berry);background:var(--berry-soft);box-shadow:inset 0 0 0 1px var(--berry)}
+.opts{display:grid;gap:6px;font-size:14px}
+.opts label{display:flex;gap:8px;align-items:flex-start}
+.opts input{margin-top:5px;accent-color:var(--berry)}
+.status{display:flex;justify-content:space-between;align-items:center;font:500 14px var(--f-en);color:var(--sub);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--berry);transition:width .25s}
+/* the card: a punched hole and ring at top-left, like a real 単語カード */
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;
+  min-height:240px;padding:34px 22px 22px;display:grid;align-content:center;gap:10px;text-align:center;
+  box-shadow:0 1px 0 var(--line),0 10px 24px -14px rgba(60,40,90,.35);overflow-wrap:anywhere;width:100%}
+.card::before{content:"";position:absolute;left:18px;top:14px;width:14px;height:14px;border-radius:50%;
+  background:var(--paper);box-shadow:inset 0 0 0 1px var(--line)}
+.card::after{content:"";position:absolute;left:12px;top:-10px;width:26px;height:32px;border:3px solid var(--ring);
+  border-bottom-color:transparent;border-radius:50% 50% 40% 40%;}
+button.card{cursor:pointer;font:inherit;color:inherit}
+.tag{font-size:12px;letter-spacing:.08em;color:var(--sub)}
+.q{font-size:clamp(24px,6vw,36px);line-height:1.3;font-weight:700}
+.q[lang="en"]{font-weight:600}
+.q.sent{font-size:clamp(20px,5vw,28px)}
+.ans{border-top:1px dashed var(--line);padding-top:12px;font-size:clamp(18px,4.6vw,24px);color:var(--berry)}
+.ans .past{display:block;font-size:14px;color:var(--sub);margin-top:4px}
+.hint{font-size:13px;color:var(--sub)}
+.timer{font:600 14px var(--f-en);color:var(--berry);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>button{flex:1 1 140px}
+.typing{display:grid;gap:10px}
+.typing label{display:grid;gap:4px;font-size:13px;color:var(--sub)}
+.typing input{width:100%;font:500 20px var(--f-en);padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.verdict{border-radius:14px;padding:12px 14px;display:grid;gap:6px;font-size:15px}
+.verdict.ok{background:var(--ok-soft)} .verdict.ng{background:var(--ng-soft)}
+.verdict b{font-size:17px}
+.verdict.ok b{color:var(--ok)} .verdict.ng b{color:var(--ng)}
+.diff{font:500 18px var(--f-en);letter-spacing:.02em}
+.diff .x{color:var(--ng);text-decoration:underline wavy;text-underline-offset:4px}
+.diff .miss{color:var(--ng);background:var(--ng-soft);border-radius:3px}
+.choices{display:grid;gap:8px}
+.choices button{text-align:left;display:flex;gap:10px;align-items:baseline}
+.choices button b{font-family:var(--f-en);min-width:1.2em}
+.choices.done button:disabled{opacity:.7}
+.choices.done button.right,.choices.done button.wrong{opacity:1}
+.choices button.right{border-color:var(--ok);background:var(--ok-soft)}
+.choices button.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.script{font-size:14px;color:var(--sub);background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
+.script [lang="en"]{color:var(--ink)}
+.result{text-align:center;display:grid;gap:6px}
+.score{font:600 clamp(44px,12vw,64px)/1 var(--f-en);font-variant-numeric:tabular-nums}
+.score small{font-size:.4em;color:var(--sub)}
+.delta{font-weight:700}
+.delta.up{color:var(--ok)} .delta.same{color:var(--sub)} .delta.down{color:var(--ng)}
+.misses{list-style:none;margin:0;padding:0;display:grid;gap:6px;text-align:left}
+.misses li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;gap:2px}
+.misses .you{font-size:13px;color:var(--ng)}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+summary{cursor:pointer;font-weight:700;font-size:14px}
+.weak{margin:10px 0 0;padding-left:1.4em;font-size:14px;display:grid;gap:2px}
+.weak span{color:var(--sub);font-family:var(--f-en);font-variant-numeric:tabular-nums}
+.small{font-size:13px;color:var(--sub)}
+.pool{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:14px}
+.pool label{display:flex;gap:6px;align-items:center}
+.pool input{accent-color:var(--berry)}
+.pool em{font-style:normal;font-family:var(--f-en);color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;font-size:11px;line-height:1;padding:4px 7px;border-radius:999px;letter-spacing:.04em;font-weight:700;white-space:nowrap}
+.chip.chk{background:var(--berry-soft);color:var(--berry)}
+.chip.ans{background:var(--ng-soft);color:var(--ng)}
+.chip.common{background:var(--ok-soft);color:var(--ok)}
+.card .chip{justify-self:center}
+.note{font-size:13px;color:var(--sub);display:block;margin-top:6px}
+.linkish{background:none;border:none;color:var(--berry);padding:6px 0;min-height:auto;text-decoration:underline}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+@media (max-width:380px){.modes{grid-template-columns:1fr}}
+</style>
+
+<main>
+  <h1>英語フラッシュカード<small id="sub"></small></h1>
+
+  <section id="home" class="opts" aria-label="はじめる前に" style="display:grid;gap:14px">
+    <div class="modes" role="group" aria-label="出し方">
+      <button type="button" data-mode="ej"><b>英語 → 日本語</b><span>見て意味を言う・発音も聞ける</span></button>
+      <button type="button" data-mode="je"><b>日本語 → 英語</b><span>英語をつづって打つ・過去形も</span></button>
+      <button type="button" data-mode="mix"><b>英→日 ＋ リスニング</b><span>カード7まい・リスニング3問</span></button>
+      <button type="button" data-mode="li"><b>リスニングだけ</b><span>英検4級の第1〜3部の形で10問</span></button>
+      <button type="button" data-mode="spot" class="wide"><b>抜き打ちチェック</b><span>朝ドリルでやった日の単語ぜんぶから4択で10問。✓をつけなかった語も出る。×の語は「確かめたい語」に入る</span></button>
+    </div>
+    <label class="range" id="rangebox" hidden>範囲
+      <select id="range"></select>
+    </label>
+    <p class="small" id="spotline"></p>
+    <div class="pool" role="radiogroup" aria-label="出すカード">
+      <span class="small">出すカード</span>
+      <label><input type="radio" name="pool" id="pool-all" value="all" checked> <span>ぜんぶ</span><em id="n-all"></em></label>
+      <label><input type="radio" name="pool" id="pool-chk" value="chk"> <span class="chip chk">✓</span><span>チェックした語</span><em id="n-chk"></em></label>
+      <label><input type="radio" name="pool" id="pool-need" value="need"> <span class="chip ans">答案</span><span class="chip common">要注意</span><span>確かめたい語</span><em id="n-need"></em></label>
+    </div>
+    <div class="opts">
+      <label><input type="checkbox" id="timed" checked> 時間を計る（英→日 10秒／日→英 単語20秒・文40秒）</label>
+      <label><input type="checkbox" id="typing" checked> 日→英は打ちこんで答える（はずすと頭の中で答えて自分で○×）</label>
+      <label><input type="checkbox" id="spotmix" checked> カードの回にも抜き打ちを2問まぜる</label>
+    </div>
+    <button type="button" id="start" class="primary">スタート</button>
+    <p class="small" id="lastline"></p>
+    <details id="parent">
+      <summary>にがてなカード（おうちの人向け）</summary>
+      <ol class="weak" id="weak"></ol>
+      <div class="row" style="margin-top:10px">
+        <button type="button" id="copyweak">一覧をコピー</button>
+        <button type="button" id="reset">記録を消す</button>
+      </div>
+      <p class="small" id="parentmsg" role="status"></p>
+    </details>
+  </section>
+
+  <section id="game" hidden style="display:grid;gap:14px" aria-label="問題">
+    <div class="status"><span id="count"></span><span class="timer" id="clock" aria-live="off"></span><span id="right"></span></div>
+    <div class="bar" aria-hidden="true"><i id="barfill" style="width:0"></i></div>
+    <div id="stage" style="display:grid;gap:14px"></div>
+    <button type="button" class="linkish" id="quit">やめてはじめの画面へ</button>
+  </section>
+</main>
+
+<script>
+const DECK=[{"en": "reply", "ja": "返事をする", "kind": "word", "past": "replied", "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "What sport do you like?", "ja": "どんなスポーツが好きですか？", "kind": "sentence", "accept": [["What sports do you like?", null]], "src": "orig"}, {"en": "He doesn’t play soccer on Sunday.", "ja": "彼は日曜日にサッカーをしません。", "kind": "sentence", "accept": [["He doesn't play soccer on Sundays.", null]], "src": "orig"}, {"en": "invite", "ja": "招待する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "contact", "ja": "連絡する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "send", "ja": "送る", "kind": "word", "past": "sent", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "receive", "ja": "受け取る", "kind": "word", "alts": [["get", "got"]], "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "hear", "ja": "聞こえる", "kind": "word", "past": "heard", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "learn", "ja": "学ぶ", "kind": "word", "alts": [["study", "studied"]], "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "solve", "ja": "（問題を）解く", "kind": "word", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "focus", "ja": "集中する", "kind": "word", "alts": [["concentrate", "concentrated"]], "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "understand", "ja": "理解する", "kind": "word", "past": "understood", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "mean", "ja": "～を意味する", "kind": "word", "past": "meant", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "guess", "ja": "推測する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "imagine", "ja": "想像する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "believe", "ja": "信じる", "kind": "word", "src": "orig"}, {"en": "agree", "ja": "同意する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "ugly", "ja": "醜い", "kind": "word", "src": "orig"}, {"en": "judge", "ja": "判断する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "forget", "ja": "忘れる", "kind": "word", "past": "forgot", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "decide", "ja": "決める", "kind": "word", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "worry", "ja": "心配する", "kind": "word", "past": "worried", "prio": 2, "src": "chk", "chk": "Day05 11/18"}, {"en": "celebrate", "ja": "祝う", "kind": "word", "prio": 2, "src": "chk", "chk": "Day05 11/18"}, {"en": "breathe", "ja": "呼吸する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day05 11/18"}, {"en": "blow", "ja": "（息を）吹く", "kind": "word", "past": "blew", "prio": 2, "src": "chk", "chk": "Day05 11/18"}, {"en": "sneeze", "ja": "くしゃみをする", "kind": "word", "src": "orig"}, {"en": "hurt", "ja": "痛む・傷つける", "kind": "word", "past": "hurt", "prio": 2, "src": "chk", "chk": "Day05 11/18"}, {"en": "heart", "ja": "心臓、心", "kind": "word", "src": "orig"}, {"en": "borrow", "ja": "借りる", "kind": "word", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "lend", "ja": "貸す", "kind": "word", "past": "lent", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "hold", "ja": "手に持つ", "kind": "word", "past": "held", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "carry", "ja": "運ぶ", "kind": "word", "past": "carried", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "bring", "ja": "持ってくる", "kind": "word", "past": "brought", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "find", "ja": "見つける", "kind": "word", "past": "found", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "hide", "ja": "隠す", "kind": "word", "past": "hid", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "build", "ja": "建てる", "kind": "word", "past": "built", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "add", "ja": "加える", "kind": "word", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "dig", "ja": "掘る", "kind": "word", "past": "dug", "prio": 2, "src": "chk", "chk": "Day06 11/19"}, {"en": "describe", "ja": "説明する・描写する", "kind": "word", "alts": [["explain", "explained"]], "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "happen", "ja": "起こる", "kind": "word", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "become", "ja": "〜になる", "kind": "word", "past": "became", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "son", "ja": "息子", "kind": "word", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "daughter", "ja": "娘", "kind": "word", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "husband", "ja": "夫", "kind": "word", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "grandparent", "ja": "祖父または祖母", "kind": "word", "src": "orig"}, {"en": "grandfather", "ja": "祖父", "kind": "word", "src": "orig"}, {"en": "uncle", "ja": "おじ", "kind": "word", "src": "orig"}, {"en": "people", "ja": "人々", "kind": "word", "src": "orig"}, {"en": "leave", "ja": "出発する、置いていく", "kind": "word", "past": "left", "prio": 2, "src": "chk", "chk": "Day01 11/14"}, {"en": "arrive", "ja": "着く", "kind": "word", "alts": [["reach", "reached"]], "prio": 2, "src": "chk", "chk": "Day01 11/14"}, {"en": "hurry", "ja": "急ぐ", "kind": "word", "past": "hurried", "prio": 2, "src": "chk", "chk": "Day01 11/14"}, {"en": "feed", "ja": "えさをやる", "kind": "word", "past": "fed", "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "fill", "ja": "満たす、いっぱいにする", "kind": "word", "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "wake", "ja": "目を覚ます、起こす", "kind": "word", "past": "woke", "accept": [["wake up", "woke up"]], "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "shut", "ja": "閉める、閉まる", "kind": "word", "past": "shut", "alts": [["close", "closed"]], "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "sweep", "ja": "掃く", "kind": "word", "past": "swept", "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "fold", "ja": "たたむ", "kind": "word", "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "prepare", "ja": "準備する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "discuss", "ja": "話し合う", "kind": "word", "prio": 2, "src": "chk", "chk": "Day02 11/15"}, {"en": "greet", "ja": "あいさつする", "kind": "word", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "join", "ja": "参加する、加わる", "kind": "word", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "ring", "ja": "（ベルが）鳴る、鳴らす", "kind": "word", "past": "rang", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "feel", "ja": "感じる", "kind": "word", "past": "felt", "prio": 2, "src": "chk", "chk": "Day03 11/16"}, {"en": "exercise", "ja": "運動する", "kind": "word", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "throw", "ja": "投げる", "kind": "word", "past": "threw", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "lose", "ja": "なくす、負ける", "kind": "word", "past": "lost", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "think", "ja": "思う、考える", "kind": "word", "past": "thought", "prio": 2, "src": "chk", "chk": "Day04 11/17"}, {"en": "grow", "ja": "育つ、育てる", "kind": "word", "past": "grew", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "let", "ja": "〜させる、許す", "kind": "word", "past": "let", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "wife", "ja": "妻", "kind": "word", "prio": 2, "src": "chk", "chk": "Day07 11/20"}, {"en": "My parents are not at home now.", "ja": "私の両親は今、家にいません。", "kind": "sentence", "prio": 2, "src": "orig"}, {"en": "Does your brother play the guitar?", "ja": "あなたの兄（弟）はギターを弾きますか？", "kind": "sentence", "prio": 2, "src": "orig"}, {"en": "Are these your books?", "ja": "これらはあなたの本ですか？", "kind": "sentence", "prio": 4, "src": "orig"}, {"en": "My sister gets up at six every morning.", "ja": "私の姉は毎朝6時に起きます。", "kind": "sentence", "accept": [["My sister gets up at 6 every morning.", null]], "prio": 4, "src": "orig"}, {"en": "Whose pencil case is this?", "ja": "これはだれの筆箱ですか？", "kind": "sentence", "prio": 4, "src": "orig"}, {"en": "How do you go to school? By bike.", "ja": "どうやって学校へ行きますか？ 自転車で行きます。", "kind": "sentence", "accept": [["How do you go to school? I go by bike.", null], ["How do you go to school? By bicycle.", null]], "prio": 4, "src": "orig"}, {"en": "How often do you go to the library?", "ja": "あなたはどのくらいの頻度で図書館に行きますか？", "kind": "sentence", "prio": 4, "src": "orig"}, {"en": "My brothers are playing soccer in the park now.", "ja": "私の兄弟たちは今、公園でサッカーをしています。", "kind": "sentence", "prio": 4, "src": "orig"}, {"en": "Ken is listening to music now.", "ja": "ケンは今、音楽を聞いています。", "kind": "sentence", "prio": 4, "src": "orig"}, {"en": "sister", "ja": "姉；妹", "kind": "word", "src": "ans", "prio": 4, "note": "答案で syster と書いていた（11/15）"}, {"en": "library", "ja": "図書館", "kind": "word", "src": "ans", "prio": 4, "note": "答案で libraly と書いていた（11/21）。go to the library の the も忘れずに"}, {"en": "listen", "ja": "（注意して）聞く", "kind": "word", "src": "ans", "prio": 4, "note": "答案で ristening と書いていた（11/21）。L と R に注意。listen to ～ の形で使う"}, {"en": "get up", "ja": "起きる（ベッドから出る）", "kind": "word", "src": "ans", "prio": 4, "past": "got up", "note": "「毎朝6時に起きます」を wake up と書いていた（11/15）。主語が3人称単数なら gets up", "accept": [["get up", "got up"]]}, {"en": "Don't run in the library.", "ja": "図書館で走ってはいけません。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案で libraly と書いていた（11/21）"}, {"en": "Are you going to visit your grandmother next week?", "ja": "あなたは来週、おばあさんを訪ねる予定ですか。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案で（ going ）に will を選んでいた（11/22）。Are you going to ＋ 動詞の原形"}, {"en": "What are you going to do this Sunday?", "ja": "今度の日曜日は何をする予定ですか。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案で What（ are ）に do を選んでいた（11/22）。be going to の疑問文は be 動詞を前に出す"}, {"en": "I am going to meet my friend next Sunday.", "ja": "私は今度の日曜日に友だちに会うつもりです。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案で meet が抜け、next Sunday を on Sunday と書いていた（11/23）。be going to のあとに動詞の原形を必ず入れる"}, {"en": "night", "ja": "夜", "kind": "word", "src": "ans", "prio": 4, "note": "答案で nigth と書いていた（11/25）。gh の順番は light・right と同じ"}, {"en": "She didn't eat breakfast this morning.", "ja": "彼女は今朝、朝食を食べませんでした。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案で didn't（ ）に ate を選んでいた（11/24）。didn't のあとは原形の eat"}, {"en": "We ate curry for dinner last night.", "ja": "私たちは昨夜、夕食にカレーを食べました。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案で for dinner を in dinner、night を nigth と書いていた（11/25）。「夕食に」は for dinner"}, {"en": "Did you do your homework yesterday?", "ja": "あなたは昨日、宿題をしましたか。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案は空らんだった（11/25）。Did ＋ 主語 ＋ 動詞の原形（do）。最初の do は「〜しましたか」、2つ目の do は「する」"}, {"en": "It was rainy this morning, so we stayed home.", "ja": "今朝は雨だったので、私たちは家にいました。", "kind": "sentence", "src": "ans", "prio": 4, "note": "答案で It（ ）rainy に is を選んでいた（11/26）。this morning と stayed（過去）があるので was"}, {"en": "buy", "ja": "買う", "kind": "word", "src": "common", "prio": 2, "past": "bought", "note": "bought（買った）と brought（持ってきた）は取りちがえやすい"}, {"en": "teach", "ja": "教える", "kind": "word", "src": "common", "prio": 2, "past": "taught", "note": "taught・thought（think）・caught（catch）は形が似ている"}, {"en": "catch", "ja": "つかまえる", "kind": "word", "src": "common", "prio": 2, "past": "caught", "note": "caught と taught（teach）は形が似ている"}, {"en": "fight", "ja": "戦う、けんかする", "kind": "word", "src": "common", "prio": 2, "past": "fought", "note": "-ought の形。bought・brought・thought の仲間"}, {"en": "say", "ja": "言う", "kind": "word", "src": "common", "prio": 2, "past": "said", "note": "said の発音は［セッド］"}, {"en": "read", "ja": "読む", "kind": "word", "src": "common", "prio": 2, "past": "read", "note": "過去形もつづりは read。発音が［レッド］に変わる"}, {"en": "tell", "ja": "（人に）話す、伝える", "kind": "word", "src": "common", "prio": 2, "past": "told", "note": "tell 人 ～ の形で「人に」伝える。人とおしゃべりするのは talk"}, {"en": "know", "ja": "知っている", "kind": "word", "src": "common", "prio": 2, "past": "knew", "note": "k は読まない。knew は new と同じ発音"}, {"en": "wear", "ja": "着ている、身につけている", "kind": "word", "src": "common", "prio": 2, "past": "wore"}, {"en": "meet", "ja": "（約束して・初めて）会う", "kind": "word", "src": "common", "prio": 2, "past": "met", "alts": [["see", "saw"]]}, {"en": "win", "ja": "勝つ", "kind": "word", "src": "common", "prio": 2, "past": "won", "note": "won の発音は［ワン］（one と同じ）"}, {"en": "choose", "ja": "選ぶ", "kind": "word", "src": "common", "prio": 2, "past": "chose", "note": "過去形 chose は o が1つ", "alts": [["pick", "picked"]]}, {"en": "begin", "ja": "（～し）始める、始まる", "kind": "word", "src": "common", "prio": 2, "past": "began", "alts": [["start", "started"]]}, {"en": "keep", "ja": "保つ、とっておく", "kind": "word", "src": "common", "prio": 2, "past": "kept"}, {"en": "sell", "ja": "売る", "kind": "word", "src": "common", "prio": 2, "past": "sold"}, {"en": "pay", "ja": "支払う", "kind": "word", "src": "common", "prio": 2, "past": "paid", "note": "payed ではなく paid"}, {"en": "see", "ja": "（自然に）見える；（人に）会う", "kind": "word", "src": "common", "prio": 2, "past": "saw", "note": "look は「目を向けて見る」、watch は「動くものをじっと見る」"}, {"en": "look", "ja": "（目を向けて）見る", "kind": "word", "src": "common", "prio": 2, "note": "Look at ～ の at を忘れない"}, {"en": "watch", "ja": "（テレビ・試合などを）じっと見る", "kind": "word", "src": "common", "prio": 2, "note": "watch TV。テレビは watch"}, {"en": "speak", "ja": "（言語を）話す", "kind": "word", "src": "common", "prio": 2, "past": "spoke", "note": "speak English。人とおしゃべりするのは talk"}, {"en": "talk", "ja": "（人と）話す、しゃべる", "kind": "word", "src": "common", "prio": 2, "note": "talk with ～（～と話す）の形でよく使う"}, {"en": "take", "ja": "持っていく、連れていく；取る", "kind": "word", "src": "common", "prio": 2, "past": "took", "note": "bring は「持ってくる」。向きが反対"}, {"en": "study", "ja": "勉強する", "kind": "word", "src": "common", "prio": 2, "past": "studied", "note": "y を i にかえて ied"}, {"en": "aunt", "ja": "おば", "kind": "word", "src": "common", "prio": 2, "note": "uncle（おじ）と組で覚える"}, {"en": "cousin", "ja": "いとこ", "kind": "word", "src": "common", "prio": 2, "note": "リスニング（Tom's cousin）にも出た"}, {"en": "tourist", "ja": "観光客", "kind": "word", "src": "chk", "chk": "Day09 11/22", "prio": 2}, {"en": "passenger", "ja": "乗客", "kind": "word", "src": "chk", "chk": "Day09 11/22", "prio": 2}, {"en": "last name", "ja": "姓、名字", "kind": "word", "src": "chk", "chk": "Day09 11/22", "prio": 2}, {"en": "nationality", "ja": "国籍", "kind": "word", "src": "chk", "chk": "Day09 11/22", "prio": 2}, {"en": "principal", "ja": "校長", "kind": "word", "src": "chk", "chk": "Day09 11/22", "prio": 2}, {"en": "clerk", "ja": "店員", "kind": "word", "src": "chk", "chk": "Day09 11/22", "prio": 2}, {"en": "sailor", "ja": "船乗り", "kind": "word", "src": "chk", "chk": "Day10 11/23", "prio": 2}, {"en": "officer", "ja": "役人、警察官", "kind": "word", "src": "chk", "chk": "Day10 11/23", "prio": 2}, {"en": "yard", "ja": "庭、中庭", "kind": "word", "src": "chk", "chk": "Day10 11/23", "prio": 2}, {"en": "stairs", "ja": "階段", "kind": "word", "src": "chk", "chk": "Day10 11/23", "prio": 2}, {"en": "envelope", "ja": "封筒", "kind": "word", "src": "chk", "chk": "Day13 11/26", "prio": 2}];
+const LISTEN=[{"id": "01-1", "opts": ["Yes, I did.", "No, it's morning.", "It's a good morning."], "answer": 1, "explanation": "Did you ～?（～しましたか）には Yes, I did. で答える", "script": "Good morning, Mom. Good morning, Ken. Did you sleep well?", "prompt": "", "part": "p1"}, {"id": "01-2", "opts": ["It's a blue pen.", "At a shop near my house.", "Yes, I like it."], "answer": 2, "explanation": "Where（どこで）→場所を答える", "script": "Is that your pen? Yes. I like it. Where did you get it?", "prompt": "", "part": "p1"}, {"id": "01-3", "opts": ["It's Monday today.", "I have a watch.", "It's ten past four."], "answer": 3, "explanation": "What time（何時）→時刻を答える", "script": "Excuse me. What time is it now?", "prompt": "", "part": "p1"}, {"id": "02-1", "opts": ["He needs a book for his homework.", "He wants to see a movie.", "He wants to meet the girl's sister.", "He wants to return a CD."], "answer": 1, "explanation": "I need a book for my homework（宿題に本が必要）が理由", "script": "Are you free this Saturday, Ken? Yes. Why? I'm going to the library. Do you want to come? Sure. I need a book for my homework.", "prompt": "Why does the boy want to go to the library?", "part": "p2", "prio": 3, "note": "11/15 の答案は空らんだった"}, {"id": "02-2", "opts": ["Twelve dollars.", "Twenty dollars.", "Eight dollars.", "Four dollars."], "answer": 3, "explanation": "The cap is eight dollars.（帽子は8ドル）", "script": "Excuse me. How much is this T-shirt? It's twelve dollars. And the cap? The cap is eight dollars.", "prompt": "How much is the cap?", "part": "p2", "prio": 3, "note": "11/15 の答案は空らんだった"}, {"id": "02-3", "opts": ["At two fifteen.", "At one forty-five.", "At one fifteen.", "At two forty-five."], "answer": 2, "explanation": "meet at one forty-five（1時45分に会う）。two fifteen は映画の開始時刻", "script": "What time does the movie start? At two fifteen. Then let's meet at one forty-five at the station. OK. See you.", "prompt": "What time will they meet?", "part": "p2", "prio": 3, "note": "11/15 の答案は空らんだった"}, {"id": "03-1", "opts": ["Under a big tree.", "At a restaurant.", "In the zoo shop.", "On a bench."], "answer": 1, "explanation": "We had lunch under a big tree.（大きな木の下で昼食）", "script": "I went to the zoo with my family last Sunday. We saw elephants and monkeys. I liked the monkeys the best because they were funny. We had lunch under a big tree. It was a very happy day. I want to go there again.", "prompt": "Where did the girl have lunch?", "part": "p3"}, {"id": "03-2", "opts": ["At four.", "At five.", "At four thirty.", "At eight."], "answer": 3, "explanation": "close at four thirty（4時30分に閉まる）。four は本を返す期限、eight は明日の開館", "script": "Attention, please. The library will close at four thirty today because of a school meeting. If you have a book to return, please do it before four. Thank you. The library will open again tomorrow at eight. Please come back then.", "prompt": "What time will the library close today?", "part": "p3", "prio": 4, "note": "11/16 の答案では 1（At four）を選んでいた。four は本を返す期限で、閉まるのは four thirty"}, {"id": "03-3", "opts": ["He plays in the garden.", "He walks with his dog.", "He gives food to his dog.", "He washes his dog."], "answer": 2, "explanation": "Every morning, I walk with Max.（毎朝マックスと散歩）。庭で遊ぶのは放課後", "script": "My name is Tom. I have a dog named Max. He is three years old. Every morning, I walk with Max for thirty minutes. After school, I give him food and play with him in the garden. Max is my best friend.", "prompt": "What does Tom do every morning?", "part": "p3"}, {"id": "04-1", "opts": ["It's red.", "Sure. Here you are.", "I'll buy a new one."], "answer": 2, "explanation": "Can I ～?（～してもいい？）→ Sure.（いいよ）と許可する", "script": "I have a new bike. Wow! Can I try it?", "prompt": "", "part": "p1"}, {"id": "04-2", "opts": ["Yes, it is a cap.", "I want to help you.", "It's nice. I'll take it."], "answer": 3, "explanation": "How about this one?（これはどう？）→感想を言って買うと答える", "script": "Can I help you? Yes. I want a blue cap. How about this one?", "prompt": "", "part": "p1"}, {"id": "04-3", "opts": ["Three times a week.", "I play with my sister.", "Yes, I play tennis."], "answer": 1, "explanation": "How often（どのくらいの頻度で）→回数で答える", "script": "Do you play any sports? Yes. I play tennis. How often do you play?", "prompt": "", "part": "p1"}, {"id": "05-1", "opts": ["In the kitchen.", "In her room.", "At school.", "Under the sofa."], "answer": 4, "explanation": "Look under the sofa.（ソファの下を見て）。kitchen にはなかった", "script": "Where is my red bag, Dad? I saw it in the kitchen. It's not there. Look under the sofa.", "prompt": "Where does the man say the girl should look?", "part": "p2"}, {"id": "05-2", "opts": ["Tom's brother.", "A teacher.", "The woman's son.", "Tom's cousin."], "answer": 4, "explanation": "He is Tom's cousin.（トムのいとこ）", "script": "Who is that boy with Tom? He is Tom's cousin. He lives in Canada. Is he a student? Yes, he is.", "prompt": "Who is the boy with Tom?", "part": "p2"}, {"id": "05-3", "opts": ["Eat cake.", "Read a book.", "Cook dinner.", "Watch TV."], "answer": 2, "explanation": "I'll read a book.（本を読む）。ケーキは待つことになった", "script": "I'm hungry. Can I have some cake? Dinner is at six. Please wait. OK, Mom. I'll read a book.", "prompt": "What will the boy do until dinner?", "part": "p2"}, {"id": "06-1", "opts": ["Milk.", "Bread.", "Eggs.", "Apples."], "answer": 4, "explanation": "apples are half price（りんごが半額）", "script": "Welcome to Sun Supermarket. Today, apples are half price. Milk is one hundred fifty yen. The sale starts at ten in the morning and ends at three in the afternoon. Please come and see our fresh fruit. Thank you for shopping with us.", "prompt": "What is half price today?", "part": "p3"}, {"id": "06-2", "opts": ["She bought flowers.", "She cooked dinner.", "She sang a song.", "She made a cake with her brother."], "answer": 4, "explanation": "My brother and I made a cake for her.（兄とケーキを作った）", "script": "Yesterday was my mother's birthday. My brother and I made a cake for her. We used a lot of strawberries. It was not very good, but she said it was delicious. She was so happy. Next year we will make her a better one.", "prompt": "What did the girl do for her mother?", "part": "p3"}, {"id": "06-3", "opts": ["At seven thirty.", "At seven forty.", "At eight forty.", "At eight thirty."], "answer": 2, "explanation": "come to school at seven forty（7時40分に登校）", "script": "Good morning, students. This is your teacher. Tomorrow is a school trip day. Please come to school at seven forty. Please don't be late. Bring your lunch and a water bottle. If it rains, we will go to the museum.", "prompt": "What time should the students come to school?", "part": "p3"}, {"id": "07-1", "opts": ["I like dinner.", "I did my homework.", "OK, I'm coming."], "answer": 3, "explanation": "夕食ができたと言われた→行くと答える", "script": "What are you doing, Tom? I'm doing my homework. Dinner is ready.", "prompt": "", "part": "p1"}, {"id": "07-2", "opts": ["I think it's Mr. Brown's.", "It's under the chair.", "Yes, it's an umbrella."], "answer": 1, "explanation": "Whose（だれの）→持ち主を答える", "script": "Look! There's an umbrella under the chair. Whose is it?", "prompt": "", "part": "p1"}, {"id": "07-3", "opts": ["I like the bus.", "OK, Dad. I'm ready now.", "Yes, I went to school."], "answer": 2, "explanation": "Hurry up.（急いで）→急ぐと答える", "script": "Are you ready for school, Lisa? Almost. Hurry up. The bus comes soon.", "prompt": "", "part": "p1"}, {"id": "08-1", "opts": ["He walked.", "He took a bus.", "He rode a bike.", "His father drove him."], "answer": 1, "explanation": "I walked.（歩いた）。bike は女の子", "script": "How did you come to school today, Jim? I walked. The bus was late. Really? I came by bike.", "prompt": "How did the boy come to school?", "part": "p2"}, {"id": "08-2", "opts": ["A cat.", "A book.", "A dog.", "A bag."], "answer": 3, "explanation": "I want a dog.（犬がほしい）。cat は提案されただけ", "script": "What do you want for your birthday, Anna? I want a dog. A dog? That's difficult. How about a cat? Hmm... I like dogs more.", "prompt": "What does the girl want for her birthday?", "part": "p2"}, {"id": "08-3", "opts": ["She likes the cold.", "She can swim in the sea.", "She can ski.", "She can play in the snow."], "answer": 2, "explanation": "I can swim in the sea.（海で泳げる）が理由", "script": "Do you like winter, Lucy? No. I don't like the cold. Which season do you like? Summer. I can swim in the sea.", "prompt": "Why does the girl like summer?", "part": "p2"}];
+const $=id=>document.getElementById(id);
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch{return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+const HK='kanako-eng-history-v3', LK='kanako-eng-last-v3';
+// はじめて開いたとき（と記録を消したとき）：重点のカード・問題を多めに出す重みを入れておく
+function seed(){const h={};
+  for(const c of DECK) if(c.prio) h[c.en]={w:{ej:c.prio,je:c.prio},miss:0,seen:0};
+  for(const q of LISTEN) if(q.prio) h['listening:'+q.id]={w:{li:q.prio},miss:0,seen:0};
+  return h}
+const CHIP={chk:c=>`<span class="chip chk">✓ ${esc((c.chk||'').replace(/^Day\d+\s*/,''))} チェック</span>`,
+  ans:()=>'<span class="chip ans">答案から</span>',common:()=>'<span class="chip common">まちがえやすい</span>',
+  spot:c=>`<span class="chip spot">抜き打ちで× ${esc((c.spot||'').replace(/^Day\d+\s*/,''))}</span>`,orig:()=>''};
+const chip=c=>(CHIP[c.src]||CHIP.orig)(c);
+// ---------- 抜き打ち（朝ドリルで学んだ全部の語から） ----------
+const DAYS=[{"d":1,"t":"2026-11-14","w":[["be","〜である、〜にいる（am / is / are、短縮形 I'm・you're・it's、過去 was / were）","was / were","be動詞"],["go","行く","went","行き来・移動"],["come","来る","came","行き来・移動"],["leave","出発する、置いていく","left","行き来・移動"],["arrive","着く","","行き来・移動"],["return","戻る、返す","","行き来・移動"],["enter","入る","","行き来・移動"],["visit","訪れる","","行き来・移動"],["stay","とどまる、滞在する","","行き来・移動"],["walk","歩く；散歩","","行き来・移動"],["run","走る","ran","行き来・移動"],["hurry","急ぐ","hurried","行き来・移動"],["follow","あとについて行く、従う","","行き来・移動"],["cross","横断する、わたる","","行き来・移動"],["move","動く、引っ越す","","行き来・移動"],["travel","旅行する","","行き来・移動"],["ride","乗る","rode","乗る・とぶ・泳ぐ"],["drive","運転する；ドライブ","drove","乗る・とぶ・泳ぐ"],["fly","飛ぶ；ハエ","flew","乗る・とぶ・泳ぐ"],["swim","泳ぐ","swam","乗る・とぶ・泳ぐ"],["climb","登る","","乗る・とぶ・泳ぐ"],["jump","とぶ、ジャンプする","","乗る・とぶ・泳ぐ"],["fall","落ちる、秋","fell","乗る・とぶ・泳ぐ"],["turn","曲がる；回る","","乗る・とぶ・泳ぐ"],["step","一歩歩く；ふむ","stepped","乗る・とぶ・泳ぐ"]]},{"d":2,"t":"2026-11-15","w":[["eat","食べる","ate","食べる・料理"],["drink","飲む","drank","食べる・料理"],["feed","えさをやる","fed","食べる・料理"],["have","持っている、食べる（3単現 has、過去 had）","had","食べる・料理"],["cook","料理する；コック","","食べる・料理"],["bake","(オーブンで)焼く","","食べる・料理"],["fry","油で揚げる、いためる","fried","食べる・料理"],["cut","切る","cut","食べる・料理"],["fill","満たす、いっぱいにする","","食べる・料理"],["wake","目をさます；起こす","woke","家での動作"],["sleep","眠る","slept","家での動作"],["sit","すわる","sat","家での動作"],["stand","立つ；売店","stood","家での動作"],["open","開ける；開いている","","家での動作"],["close","閉める；近い","","家での動作"],["shut","閉める、閉まる","shut","家での動作"],["wash","洗う","","家での動作"],["wipe","ふく","","家での動作"],["sweep","はく、そうじする","swept","家での動作"],["fold","たたむ","","家での動作"],["clean","そうじする；きれいな","","家での動作"],["brush","ブラシ；みがく","","家での動作"],["wear","着ている、身につける","wore","家での動作"],["prepare","準備する","","家での動作"],["say","言う","said","話す・答える"],["speak","話す","spoke","話す・答える"],["talk","話す","","話す・答える"],["tell","話す、伝える","told","話す・答える"],["discuss","話し合う","","話す・答える"],["describe","説明する、えがく","","話す・答える"],["ask","たずねる、頼む","","話す・答える"],["answer","答える；答え","","話す・答える"],["reply","返事をする","replied","話す・答える"],["repeat","くり返す；くり返して言う","","話す・答える"]]},{"d":3,"t":"2026-11-16","w":[["greet","あいさつする","","あいさつ・連絡"],["meet","会う","met","あいさつ・連絡"],["introduce","紹介する","","あいさつ・連絡"],["invite","招待する","","あいさつ・連絡"],["join","参加する、加わる","","あいさつ・連絡"],["call","電話する、呼ぶ","","あいさつ・連絡"],["contact","連絡する","","あいさつ・連絡"],["mail","郵送する、メールを送る","","あいさつ・連絡"],["send","送る","sent","あいさつ・連絡"],["receive","受け取る","","あいさつ・連絡"],["see","見る、会う","saw","見る・聞く・感じる"],["look","見る、〜に見える","","見る・聞く・感じる"],["watch","見る；腕時計","","見る・聞く・感じる"],["show","見せる","","見る・聞く・感じる"],["hear","聞こえる、聞く","","見る・聞く・感じる"],["listen","聞く","","見る・聞く・感じる"],["sound","音、～に聞こえる","","見る・聞く・感じる"],["ring","（ベルが）鳴る；鳴らす","rang","見る・聞く・感じる"],["smell","におい；においがする","","見る・聞く・感じる"],["touch","さわる","","見る・聞く・感じる"],["feel","感じる","felt","見る・聞く・感じる"],["study","勉強する","studied","勉強・学校"],["learn","学ぶ、覚える（learn to＋動詞の原形）","","勉強・学校"],["teach","教える","taught","勉強・学校"],["read","読む","read","勉強・学校"],["write","書く","wrote","勉強・学校"],["spell","つづる","","勉強・学校"],["copy","写す；コピー","copied","勉強・学校"],["practice","練習する","","勉強・学校"],["solve","解く；解決する","","勉強・学校"],["check","調べる、確認する；チェック","","勉強・学校"],["focus","集中する；焦点","","勉強・学校"]]},{"d":4,"t":"2026-11-17","w":[["draw","(絵・線を)かく","drew","描く・歌う・演じる"],["paint","(絵の具で)描く、ぬる","","描く・歌う・演じる"],["sing","歌う","sang","描く・歌う・演じる"],["dance","おどる；ダンス","","描く・歌う・演じる"],["perform","演じる、演奏する","","描く・歌う・演じる"],["play","（スポーツ・楽器を）する；遊ぶ","","遊び・スポーツ"],["skate","スケートをする","","遊び・スポーツ"],["ski","スキーをする","","遊び・スポーツ"],["surf","サーフィンをする","","遊び・スポーツ"],["exercise","運動する；運動","","遊び・スポーツ"],["kick","ける","","遊び・スポーツ"],["hit","打つ、ぶつかる","hit","遊び・スポーツ"],["throw","投げる","threw","遊び・スポーツ"],["catch","つかまえる","caught","遊び・スポーツ"],["fight","戦う、けんかする","fought","遊び・スポーツ"],["win","勝つ","won","遊び・スポーツ"],["lose","なくす、負ける","lost","遊び・スポーツ"],["think","思う、考える","thought","考える・わかる"],["know","知っている","knew","考える・わかる"],["understand","理解する、わかる","understood","考える・わかる"],["mean","意味する","meant","考える・わかる"],["guess","推測する、あててみる","","考える・わかる"],["imagine","想像する","","考える・わかる"],["believe","信じる","","考える・わかる"],["agree","賛成する、同意する","","考える・わかる"],["judge","判断する；審判","","考える・わかる"],["remember","覚えている、思い出す（remember to＋原形）","","考える・わかる"],["forget","忘れる","forgot","考える・わかる"],["decide","〜することに決める（decide to＋動詞の原形）","","考える・わかる"],["choose","選ぶ","chose","考える・わかる"],["pick","選ぶ、つむ","","考える・わかる"]]},{"d":5,"t":"2026-11-18","w":[["want","〜したい（want to＋動詞の原形）","","したい・好き"],["need","〜する必要がある（need to＋動詞の原形）","","したい・好き"],["hope","〜したいと思う（hope to＋動詞の原形）","","したい・好き"],["plan","〜するつもりだ（plan to＋動詞の原形）","planned","したい・好き"],["try","試す、やってみる","tried","したい・好き"],["pray","いのる","","したい・好き"],["like","好む；〜のような","","したい・好き"],["love","愛する、大好き","","したい・好き"],["enjoy","〜して楽しむ（enjoy ～ing）","","したい・好き"],["laugh","笑う","","気持ち・表情"],["cry","泣く","cried","気持ち・表情"],["smile","ほほえみ；ほほえむ","","気持ち・表情"],["kiss","キス（する）","","気持ち・表情"],["worry","心配する","worried","気持ち・表情"],["thank","感謝する","","気持ち・表情"],["excuse","許す；(Excuse meで)すみません","","気持ち・表情"],["celebrate","祝う","","気持ち・表情"],["breathe","息をする","","体の動き・けが"],["sneeze","くしゃみをする","","体の動き・けが"],["blow","(風が)ふく；息をふく","blew","体の動き・けが"],["shake","ふる；ゆらす","shook","体の動き・けが"],["hurt","痛む、傷つける(過去形 hurt)","hurt","体の動き・けが"],["kill","殺す、枯らす","","体の動き・けが"]]},{"d":6,"t":"2026-11-19","w":[["buy","買う","bought","買い物・お金"],["sell","売る","sold","買い物・お金"],["pay","支払う","paid","買い物・お金"],["spend","（お金・時間を）使う","spent","買い物・お金"],["save","ためる、節約する、救う","","買い物・お金"],["borrow","借りる","","買い物・お金"],["lend","貸す","lent","買い物・お金"],["order","注文（する）","","買い物・お金"],["collect","集める","","買い物・お金"],["hold","持つ、にぎる","held","持つ・運ぶ・置く"],["carry","運ぶ、持ち歩く","carried","持つ・運ぶ・置く"],["bring","持ってくる","brought","持つ・運ぶ・置く"],["take","取る、連れていく","took","持つ・運ぶ・置く"],["put","置く；入れる","put","持つ・運ぶ・置く"],["set","置く；用意する","set","持つ・運ぶ・置く"],["drop","落とす、落ちる","dropped","持つ・運ぶ・置く"],["push","押す","","持つ・運ぶ・置く"],["keep","保つ、とっておく","kept","持つ・運ぶ・置く"],["give","与える","gave","与える・見つける"],["get","手に入れる","got","与える・見つける"],["help","手伝う、助ける","","与える・見つける"],["share","分け合う、いっしょに使う","","与える・見つける"],["find","見つける","found","与える・見つける"],["hide","かくれる、かくす","hid","与える・見つける"],["make","作る","made","作る・足す・こわす"],["build","建てる、作る","built","作る・足す・こわす"],["add","加える、足す","","作る・足す・こわす"],["cover","おおう；表紙","","作る・足す・こわす"],["dig","ほる","dug","作る・足す・こわす"],["break","こわす、折る","broke","作る・足す・こわす"]]},{"d":7,"t":"2026-11-20","w":[["begin","〜し始める（begin to＋原形／～ing）","began","始まる・終わる"],["start","〜し始める（start to＋原形／～ing）","","始まる・終わる"],["finish","〜し終える（finish ～ing）","","始まる・終わる"],["stop","〜するのをやめる（stop ～ing）","stopped","始まる・終わる"],["wait","待つ","","始まる・終わる"],["happen","起こる","","始まる・終わる"],["become","〜になる","became","変化・状態"],["change","変える、変わる","","変化・状態"],["grow","育つ、育てる","grew","変化・状態"],["live","住む","","変化・状態"],["work","働く；仕事","","変化・状態"],["do","する（3単現 does、過去 did）","did","変化・状態"],["use","使う","","変化・状態"],["let","させる、許す","let","変化・状態"],["miss","のがす、会えなくてさびしい","","その他"],["family","家族","","家族"],["parent","親","","家族"],["father","父","","家族"],["dad","お父さん","","家族"],["daddy","パパ","","家族"],["mother","母","","家族"],["mom","お母さん","","家族"],["mommy","ママ","","家族"],["mum","お母さん（英）","","家族"],["son","息子","","家族"],["daughter","娘","","家族"],["brother","兄、弟","","家族"],["sister","姉；妹","","家族"],["husband","夫","","家族"],["wife","妻","","家族"]]},{"d":8,"t":"2026-11-21","w":[["grandparent","祖父母（のひとり）","","親せき・子ども"],["grandparents","祖父母","","親せき・子ども"],["grandfather","祖父","","親せき・子ども"],["grandpa","おじいちゃん","","親せき・子ども"],["grandmother","祖母","","親せき・子ども"],["grandma","おばあちゃん","","親せき・子ども"],["uncle","おじ","","親せき・子ども"],["aunt","おば","","親せき・子ども"],["cousin","いとこ","","親せき・子ども"],["baby","赤ちゃん","","親せき・子ども"],["child","子ども","","親せき・子ども"],["kid","子ども","","親せき・子ども"],["man","男の人","","男の人・女の人"],["woman","女の人","","男の人・女の人"],["boy","男の子","","男の人・女の人"],["girl","女の子","","男の人・女の人"],["guy","やつ、男の人","","男の人・女の人"],["lady","女の人、婦人","","男の人・女の人"],["adult","大人","","男の人・女の人"],["person","人","","男の人・女の人"],["people","人々","","男の人・女の人"],["age","年齢","","男の人・女の人"],["birth","誕生","","男の人・女の人"],["wedding","結婚式","","男の人・女の人"],["king","王様","","男の人・女の人"],["prince","王子","","男の人・女の人"],["princess","王女；お姫さま","","男の人・女の人"]]},{"d":9,"t":"2026-11-22","w":[["friend","友だち","","友だち・近所"],["boyfriend","ボーイフレンド、彼氏","","友だち・近所"],["girlfriend","ガールフレンド","","友だち・近所"],["partner","パートナー、相手","","友だち・近所"],["neighbor","隣の人、近所の人","","友だち・近所"],["member","メンバー、一員","","友だち・近所"],["group","グループ、集団","","友だち・近所"],["guest","客","","友だち・近所"],["visitor","訪問者、客","","友だち・近所"],["foreigner","外国人","","外国・旅の人"],["tourist","観光客","","外国・旅の人"],["traveler","旅行者","","外国・旅の人"],["passenger","乗客","","外国・旅の人"],["guide","案内人、ガイド","","外国・旅の人"],["name","名前","","名前・呼び方"],["last name","姓、名字","","名前・呼び方"],["nationality","国籍","","名前・呼び方"],["Mr.","〜さん（男性）","","名前・呼び方"],["Mrs.","〜さん（既婚女性）","","名前・呼び方"],["smith","かじ屋（人の名字にも使う）","","名前・呼び方"],["teacher","先生","","学校・病院の人"],["principal","校長","","学校・病院の人"],["doctor","医者","","学校・病院の人"],["nurse","看護師","","学校・病院の人"],["dentist","歯医者","","学校・病院の人"],["clerk","店員","","学校・病院の人"],["waiter","ウェイター","","学校・病院の人"],["waitress","ウェイトレス","","学校・病院の人"],["baker","パン屋さん","","学校・病院の人"],["owner","持ち主、飼い主","","学校・病院の人"],["leader","リーダー","","学校・病院の人"]]},{"d":10,"t":"2026-11-23","w":[["actor","俳優","","芸術・報道の仕事"],["actress","女優","","芸術・報道の仕事"],["musician","音楽家","","芸術・報道の仕事"],["artist","芸術家、画家","","芸術・報道の仕事"],["painter","画家","","芸術・報道の仕事"],["writer","作家、書く人","","芸術・報道の仕事"],["reporter","記者","","芸術・報道の仕事"],["interviewer","面接官、聞き手","","芸術・報道の仕事"],["scientist","科学者","","芸術・報道の仕事"],["pilot","パイロット","","安全・乗り物の仕事"],["sailor","船乗り","","安全・乗り物の仕事"],["firefighter","消防士","","安全・乗り物の仕事"],["cop","警官","","安全・乗り物の仕事"],["officer","役人、警察官","","安全・乗り物の仕事"],["spy","スパイ","","安全・乗り物の仕事"],["worker","働く人；労働者","","安全・乗り物の仕事"],["volunteer","ボランティア","","安全・乗り物の仕事"],["champion","チャンピオン、優勝者","","安全・乗り物の仕事"],["house","家","","部屋・家"],["home","家、故郷；家に","","部屋・家"],["room","部屋","","部屋・家"],["bedroom","寝室","","部屋・家"],["bathroom","ふろ場、トイレ","","部屋・家"],["toilet","トイレ","","部屋・家"],["kitchen","台所","","部屋・家"],["living room","居間","","部屋・家"],["dining room","食堂、ダイニング","","部屋・家"],["garage","車庫、ガレージ","","部屋・家"],["garden","庭","","部屋・家"],["yard","庭、中庭","","部屋・家"],["stairs","階段","","部屋・家"]]},{"d":11,"t":"2026-11-24","w":[["door","ドア","","家の部分"],["window","窓","","家の部分"],["wall","かべ","","家の部分"],["floor","床、階","","家の部分"],["ceiling","天井","","家の部分"],["roof","屋根","","家の部分"],["bed","ベッド","","家具・インテリア"],["chair","いす","","家具・インテリア"],["table","テーブル","","家具・インテリア"],["sofa","ソファー","","家具・インテリア"],["couch","長いす、ソファ","","家具・インテリア"],["shelf","たな","","家具・インテリア"],["clock","時計(置き・かけ時計)","","家具・インテリア"],["mirror","鏡","","家具・インテリア"],["curtain","カーテン","","家具・インテリア"],["blanket","毛布","","家具・インテリア"],["poster","ポスター","","家具・インテリア"],["vase","花びん","","家具・インテリア"],["candle","ろうそく","","家具・インテリア"],["refrigerator","冷蔵庫","","家具・インテリア"],["cup","カップ","","台所・日用品"],["glass","コップ、ガラス","","台所・日用品"],["bottle","びん","","台所・日用品"],["bucket","バケツ","","台所・日用品"],["box","箱","","台所・日用品"],["tube","管；チューブ","","台所・日用品"],["knife","ナイフ","","台所・日用品"],["case","入れ物、ケース；場合","","台所・日用品"],["tool","道具","","台所・日用品"],["machine","機械","","台所・日用品"],["garbage","ごみ","","台所・日用品"],["cloth","布","","台所・日用品"]]},{"d":12,"t":"2026-11-25","w":[["bath","ふろ","","ふろ・そうじ"],["shower","シャワー；にわか雨","","ふろ・そうじ"],["soap","せっけん","","ふろ・そうじ"],["towel","タオル","","ふろ・そうじ"],["laundry","洗濯物","","ふろ・そうじ"],["housework","家事","","ふろ・そうじ"],["clothes","服、衣類","","服"],["shirt","シャツ","","服"],["T-shirt","Tシャツ","","服"],["jacket","上着、ジャケット","","服"],["coat","コート","","服"],["sweater","セーター","","服"],["dress","ドレス、服","","服"],["skirt","スカート","","服"],["pants","ズボン","","服"],["trousers","ズボン","","服"],["jeans","ジーンズ","","服"],["uniform","制服","","服"],["apron","エプロン","","服"],["button","ボタン","","服"],["pocket","ポケット","","服"],["hat","ぼうし","","身につける物"],["cap","(ふちなしの)ぼうし","","身につける物"],["scarf","マフラー、スカーフ","","身につける物"],["glove","手ぶくろ、グローブ","","身につける物"],["gloves","手ぶくろ","","身につける物"],["sock","くつ下","","身につける物"],["shoe","くつ（片方）","","身につける物"],["glasses","めがね","","身につける物"],["ribbon","リボン","","身につける物"],["jewelry","宝石類、アクセサリー","","身につける物"]]},{"d":13,"t":"2026-11-26","w":[["bag","かばん、ふくろ","","持ち物"],["wallet","財布","","持ち物"],["key","かぎ","","持ち物"],["camera","カメラ","","持ち物"],["card","カード","","持ち物"],["envelope","封筒","","持ち物"],["umbrella","かさ","","持ち物"],["fruit","くだもの","","果物"],["apple","リンゴ","","果物"],["banana","バナナ","","果物"],["orange","オレンジ、オレンジ色の","","果物"],["grape","ブドウ","","果物"],["melon","メロン","","果物"],["lemon","レモン","","果物"],["peach","桃","","果物"],["cherry","サクランボ","","果物"],["pineapple","パイナップル","","果物"],["vegetable","野菜","","野菜"],["tomato","トマト","","野菜"],["potato","じゃがいも","","野菜"],["carrot","にんじん","","野菜"],["corn","トウモロコシ","","野菜"],["bean","豆","","野菜"],["pumpkin","かぼちゃ","","野菜"],["salad","サラダ","","野菜"]]},{"d":14,"t":"2026-11-27","w":[["meat","肉","","肉・卵・乳製品"],["beef","牛肉","","肉・卵・乳製品"],["chicken","鶏肉；ニワトリ","","肉・卵・乳製品"],["turkey","七面鳥","","肉・卵・乳製品"],["egg","卵","","肉・卵・乳製品"],["cheese","チーズ","","肉・卵・乳製品"],["butter","バター","","肉・卵・乳製品"],["cream","クリーム","","肉・卵・乳製品"],["yogurt","ヨーグルト","","肉・卵・乳製品"],["rice","米；ご飯","","主な料理"],["bread","パン","","主な料理"],["sandwich","サンドイッチ","","主な料理"],["hamburger","ハンバーガー","","主な料理"],["burger","ハンバーガー","","主な料理"],["pizza","ピザ","","主な料理"],["pasta","パスタ","","主な料理"],["curry","カレー","","主な料理"],["soup","スープ","","主な料理"],["pancake","パンケーキ","","主な料理"],["food","食べ物","","食事・食堂"],["meal","食事","","食事・食堂"],["breakfast","朝食","","食事・食堂"],["lunch","昼食","","食事・食堂"],["dinner","夕食","","食事・食堂"],["restaurant","レストラン","","食事・食堂"],["menu","メニュー","","食事・食堂"],["dish","皿、料理","","食事・食堂"],["bowl","ボウル、どんぶり","","食事・食堂"],["cooking","料理","","食事・食堂"],["recipe","レシピ、作り方","","食事・食堂"],["ingredient","材料","","食事・食堂"]]},{"d":15,"t":"2026-11-28","w":[["cake","ケーキ","","お菓子"],["cheesecake","チーズケーキ","","お菓子"],["cookie","クッキー","","お菓子"],["biscuit","ビスケット","","お菓子"],["candy","あめ、キャンディ","","お菓子"],["chocolate","チョコレート","","お菓子"],["ice cream","アイスクリーム","","お菓子"],["ice","氷","","お菓子"],["pie","パイ","","お菓子"],["dessert","デザート","","お菓子"],["snack","軽食、おやつ","","お菓子"],["bar","棒状のもの、バー","","お菓子"],["sugar","さとう","","お菓子"],["water","水","","飲み物"],["tea","お茶；紅茶","","飲み物"],["coffee","コーヒー","","飲み物"],["juice","ジュース","","飲み物"],["coke","コーラ","","飲み物"],["milk","牛乳","","飲み物"],["school","学校","","学校・クラス"],["elementary","初歩の、小学校の","","学校・クラス"],["junior high school","中学校","","学校・クラス"],["junior","年下の、下級の","","学校・クラス"],["college","大学","","学校・クラス"],["university","大学","","学校・クラス"],["class","クラス、授業","","学校・クラス"],["classroom","教室","","学校・クラス"],["classmate","クラスメート","","学校・クラス"],["student","生徒；学生","","学校・クラス"],["gym","体育館、ジム","","学校・クラス"],["locker","ロッカー","","学校・クラス"],["bell","ベル、鐘","","学校・クラス"]]},{"d":16,"t":"2026-11-29","w":[["pen","ペン","","文房具・教材"],["pencil","えんぴつ","","文房具・教材"],["eraser","消しゴム","","文房具・教材"],["ruler","定規","","文房具・教材"],["paintbrush","絵筆","","文房具・教材"],["notebook","ノート","","文房具・教材"],["note","メモ","","文房具・教材"],["book","本","","文房具・教材"],["textbook","教科書","","文房具・教材"],["dictionary","辞書","","文房具・教材"],["paper","紙","","文房具・教材"],["desk","机","","文房具・教材"],["board","黒板、板","","文房具・教材"],["blackboard","黒板","","文房具・教材"],["math","数学","","教科"],["science","理科、科学","","教科"],["history","歴史","","教科"],["art","美術、芸術","","教科"],["language","言語、ことば","","教科"],["social","社会の","","教科"],["social studies","社会科","","教科"],["grammar","文法","","教科"],["subject","教科、主題","","教科"],["course","コース；科目","","教科"]]},{"d":17,"t":"2026-11-30","w":[["lesson","授業、レッスン","","勉強・テスト"],["homework","宿題","","勉強・テスト"],["test","テスト；試験","","勉強・テスト"],["exam","試験","","勉強・テスト"],["question","質問；問題","","勉強・テスト"],["problem","問題","","勉強・テスト"],["example","例","","勉強・テスト"],["point","点；要点","","勉強・テスト"],["mark","印、点数","","勉強・テスト"],["grade","学年、成績","","勉強・テスト"],["result","結果","","勉強・テスト"],["review","復習；批評","","勉強・テスト"],["report","レポート、報告","","勉強・テスト"],["topic","話題","","勉強・テスト"],["word","単語；言葉","","文章・ことば"],["sentence","文","","文章・ことば"],["paragraph","段落","","文章・ことば"],["poem","詩","","文章・ことば"],["speech","スピーチ、演説","","文章・ことば"],["page","ページ","","文章・ことば"],["section","部分、区切り","","文章・ことば"],["period","期間、時限","","文章・ことば"],["writing","書くこと、文章","","文章・ことば"],["reader","読者；読む人","","文章・ことば"],["underline","下線（を引く）","","文章・ことば"],["rule","規則、ルール","","文章・ことば"]]},{"d":18,"t":"2026-12-01","w":[["car","車","","道路の乗り物"],["taxi","タクシー","","道路の乗り物"],["bus","バス","","道路の乗り物"],["truck","トラック","","道路の乗り物"],["bicycle","自転車","","道路の乗り物"],["bike","自転車","","道路の乗り物"],["wheel","車輪","","道路の乗り物"],["train","電車","","道路の乗り物"],["subway","地下鉄","","道路の乗り物"],["airplane","飛行機","","空・海の乗り物"],["plane","飛行機","","空・海の乗り物"],["jet","ジェット機","","空・海の乗り物"],["airport","空港","","空・海の乗り物"],["boat","ボート、船","","空・海の乗り物"],["ship","船","","空・海の乗り物"],["ferry","フェリー","","空・海の乗り物"],["trip","旅行","","旅行"],["journey","旅、旅行","","旅行"],["vacation","休暇、休み","","旅行"],["ticket","切符、チケット","","旅行"],["passport","パスポート","","旅行"],["luggage","荷物、手荷物","","旅行"],["seat","席；いす","","旅行"],["platform","(駅の)ホーム","","旅行"],["station","駅","","旅行"],["bank","銀行","","店・施設"],["bookstore","本屋","","店・施設"],["cafe","喫茶店、カフェ","","店・施設"],["cafeteria","食堂、カフェテリア","","店・施設"],["hotel","ホテル","","店・施設"],["hospital","病院","","店・施設"],["library","図書館、図書室","","店・施設"],["museum","博物館、美術館","","店・施設"],["aquarium","水族館","","店・施設"],["zoo","動物園","","店・施設"],["cinema","映画館","","店・施設"],["theater","劇場、映画館","","店・施設"],["stadium","スタジアム、競技場","","店・施設"],["hall","ホール、広間","","店・施設"],["park","公園","","店・施設"]]},{"d":19,"t":"2026-12-02","w":[["building","建物","","名所・建物"],["church","教会","","名所・建物"],["temple","寺","","名所・建物"],["shrine","神社","","名所・建物"],["palace","宮殿","","名所・建物"],["castle","城","","名所・建物"],["tower","塔","","名所・建物"],["bridge","橋","","名所・建物"],["town","町","","町・国"],["village","村","","町・国"],["city","市、都市","","町・国"],["capital","首都","","町・国"],["country","国","","町・国"],["world","世界","","町・国"],["hometown","ふるさと","","町・国"],["center","中心、センター","","町・国"],["west","西、西の","","町・国"],["street","通り","","道・場所"],["road","道路","","道・場所"],["way","道；方法","","道・場所"],["block","ブロック、街区","","道・場所"],["corner","角、すみ","","道・場所"],["map","地図","","道・場所"],["sign","標識；看板","","道・場所"],["place","場所","","道・場所"],["spot","場所；点","","道・場所"],["side","側；横","","道・場所"]]},{"d":20,"t":"2026-12-03","w":[["animal","動物","","ペット・動物"],["pet","ペット","","ペット・動物"],["dog","犬","","ペット・動物"],["cat","ネコ","","ペット・動物"],["mouse","ネズミ","","ペット・動物"],["rat","ネズミ","","ペット・動物"],["rabbit","うさぎ","","ペット・動物"],["cow","雌牛、牛","","ペット・動物"],["pig","ブタ","","ペット・動物"],["sheep","羊","","ペット・動物"],["horse","馬","","ペット・動物"],["bear","クマ","","ペット・動物"],["lion","ライオン","","ペット・動物"],["tiger","トラ","","ペット・動物"],["monkey","サル","","ペット・動物"],["elephant","ゾウ","","ペット・動物"],["squirrel","リス","","ペット・動物"],["bird","鳥","","鳥・虫・水の生き物"],["bee","ミツバチ","","鳥・虫・水の生き物"],["butterfly","チョウ","","鳥・虫・水の生き物"],["insect","昆虫","","鳥・虫・水の生き物"],["frog","カエル","","鳥・虫・水の生き物"],["snake","へび","","鳥・虫・水の生き物"],["fish","魚","","鳥・虫・水の生き物"],["whale","クジラ","","鳥・虫・水の生き物"],["dolphin","イルカ","","鳥・虫・水の生き物"]]},{"d":21,"t":"2026-12-04","w":[["plant","植物","","植物"],["tree","木","","植物"],["flower","花","","植物"],["rose","バラ","","植物"],["lily","ユリ","","植物"],["blossom","花","","植物"],["cherry blossom","桜の花","","植物"],["grass","草、芝生","","植物"],["leaf","葉(複数形 leaves)","","植物"],["seed","種","","植物"],["forest","森","","植物"],["weather","天気","","天気"],["forecast","予報","","天気"],["temperature","気温、体温","","天気"],["sun","太陽","","天気"],["sunshine","日光","","天気"],["rain","雨；雨がふる","","天気"],["rainbow","にじ","","天気"],["cloud","雲","","天気"],["snow","雪","","天気"],["wind","風","","天気"],["storm","嵐","","天気"],["thunder","雷、雷鳴","","天気"],["typhoon","台風","","天気"],["fog","霧","","天気"]]},{"d":22,"t":"2026-12-05","w":[["sky","空","","空・地形"],["moon","月","","空・地形"],["star","星","","空・地形"],["earth","地球","","空・地形"],["mountain","山","","空・地形"],["hill","丘、小山","","空・地形"],["field","野原、畑；競技場","","空・地形"],["ground","地面、運動場","","空・地形"],["stone","石","","空・地形"],["river","川","","空・地形"],["lake","湖","","空・地形"],["sea","海","","空・地形"],["ocean","海、大洋","","空・地形"],["beach","浜辺","","空・地形"],["island","島","","空・地形"],["wave","波","","空・地形"],["nature","自然","","自然・環境"],["environment","環境","","自然・環境"],["pollution","汚染","","自然・環境"],["fire","火、火事","","自然・環境"],["smoke","煙","","自然・環境"],["sight","景色；視力","","自然・環境"],["morning","朝、午前","","1日の流れ"],["a.m.","午前","","1日の流れ"],["noon","正午","","1日の流れ"],["afternoon","午後","","1日の流れ"],["p.m.","午後","","1日の流れ"],["evening","夕方、晩","","1日の流れ"],["night","夜","","1日の流れ"],["tonight","今夜(は)","","1日の流れ"],["midnight","真夜中","","1日の流れ"]]},{"d":23,"t":"2026-12-06","w":[["moment","ちょっとの間、瞬間","","時間の単位"],["minute","分","","時間の単位"],["hour","1時間","","時間の単位"],["quarter","4分の1；15分","","時間の単位"],["o'clock","〜時","","時間の単位"],["time","時間；〜回","","時間の単位"],["day","日、昼間","","時間の単位"],["week","週","","時間の単位"],["month","月、1か月","","時間の単位"],["year","年、～歳","","時間の単位"],["Monday","月曜日","","曜日"],["Tuesday","火曜日","","曜日"],["Wednesday","水曜日","","曜日"],["Thursday","木曜日","","曜日"],["Friday","金曜日","","曜日"],["Saturday","土曜日","","曜日"],["Sunday","日曜日","","曜日"],["weekend","週末","","曜日"],["January","1月","","月"],["February","2月","","月"],["March","3月","","月"],["April","4月","","月"],["June","6月","","月"],["July","7月","","月"],["August","8月","","月"],["September","9月","","月"],["October","10月","","月"],["November","11月","","月"],["December","12月","","月"],["spring","春","","季節"],["summer","夏","","季節"],["autumn","秋","","季節"],["winter","冬","","季節"],["season","季節","","季節"]]},{"d":24,"t":"2026-12-07","w":[["today","今日","","今日・明日・未来"],["tomorrow","明日","","今日・明日・未来"],["next","次の、次に","","今日・明日・未来"],["last","最後の、この前の","","今日・明日・未来"],["future","未来、将来","","今日・明日・未来"],["daily","毎日の、毎日","","今日・明日・未来"],["everyday","毎日の、ふだんの","","今日・明日・未来"],["due","(～する)予定の；期限の","","今日・明日・未来"],["end","終わり","","今日・明日・未来"],["calendar","カレンダー","","行事・記念日"],["date","日付、デート","","行事・記念日"],["birthday","誕生日","","行事・記念日"],["holiday","休日、休み","","行事・記念日"],["Christmas","クリスマス","","行事・記念日"],["New Year","新年、お正月","","行事・記念日"],["Halloween","ハロウィーン","","行事・記念日"],["sport","スポーツ","","スポーツ"],["sports","スポーツ","","スポーツ"],["baseball","野球","","スポーツ"],["basketball","バスケットボール","","スポーツ"],["volleyball","バレーボール","","スポーツ"],["tennis","テニス","","スポーツ"],["soccer","サッカー","","スポーツ"],["football","サッカー、フットボール","","スポーツ"]]},{"d":25,"t":"2026-12-08","w":[["game","試合、ゲーム","","試合・チーム"],["match","試合","","試合・チーム"],["contest","コンテスト、競技会","","試合・チーム"],["team","チーム","","試合・チーム"],["club","クラブ、部","","試合・チーム"],["coach","コーチ","","試合・チーム"],["player","選手","","試合・チーム"],["ball","ボール","","試合・チーム"],["bat","バット；コウモリ","","試合・チーム"],["goal","ゴール、目標","","試合・チーム"],["score","得点","","試合・チーム"],["Olympics","オリンピック","","試合・チーム"],["swimming","水泳","","からだを動かす"],["pool","プール","","からだを動かす"],["swimming pool","プール","","からだを動かす"],["skiing","スキー","","からだを動かす"],["running","走ること、ランニング","","からだを動かす"],["jogging","ジョギング","","からだを動かす"],["walking","歩くこと、散歩","","からだを動かす"],["hiking","ハイキング","","からだを動かす"],["cycling","サイクリング","","からだを動かす"],["dancing","ダンス、おどること","","からだを動かす"],["music","音楽","","音楽"],["song","歌","","音楽"],["singer","歌手","","音楽"],["singing","歌うこと、歌","","音楽"],["pop","ポップス（音楽）","","音楽"],["rock","岩、ロック音楽","","音楽"],["opera","オペラ","","音楽"],["concert","コンサート","","音楽"],["album","アルバム","","音楽"],["CD","CD","","音楽"],["CD player","CDプレーヤー","","音楽"],["radio","ラジオ","","音楽"]]},{"d":26,"t":"2026-12-09","w":[["piano","ピアノ","","楽器・バンド"],["guitar","ギター","","楽器・バンド"],["violin","バイオリン","","楽器・バンド"],["drum","ドラム、太鼓","","楽器・バンド"],["band","バンド、楽団","","楽器・バンド"],["chorus","合唱","","楽器・バンド"],["television","テレビ","","テレビ・映画"],["TV","テレビ","","テレビ・映画"],["video","ビデオ、動画","","テレビ・映画"],["DVD","DVD","","テレビ・映画"],["movie","映画","","テレビ・映画"],["drama","劇、ドラマ","","テレビ・映画"],["program","番組、プログラム","","テレビ・映画"],["cartoon","漫画、アニメ","","テレビ・映画"],["comic","漫画","","テレビ・映画"],["character","登場人物、性格","","テレビ・映画"],["reading","読書；読むこと","","物語・舞台"],["story","話；物語","","物語・舞台"],["novel","小説","","物語・舞台"],["fairy","妖精","","物語・舞台"],["ghost","幽霊","","物語・舞台"],["stage","ステージ、舞台","","物語・舞台"],["role","役；役割","","物語・舞台"],["performance","演技、公演","","物語・舞台"],["fan","ファン；扇風機","","物語・舞台"]]},{"d":27,"t":"2026-12-10","w":[["picture","絵、写真","","絵・工作"],["painting","絵、絵をかくこと","","絵・工作"],["drawing","絵、絵をかくこと","","絵・工作"],["photo","写真","","絵・工作"],["design","デザイン、設計","","絵・工作"],["craft","工作、工芸","","絵・工作"],["scissors","はさみ","","絵・工作"],["glue","のり、接着剤","","絵・工作"],["stamp","切手","","絵・工作"],["hobby","趣味","","趣味・アウトドア"],["activity","活動","","趣味・アウトドア"],["collection","収集(品)","","趣味・アウトドア"],["skill","技術；うでまえ","","趣味・アウトドア"],["camp","キャンプ","","趣味・アウトドア"],["camping","キャンプ","","趣味・アウトドア"],["tent","テント","","趣味・アウトドア"],["picnic","ピクニック","","趣味・アウトドア"],["fishing","魚釣り","","趣味・アウトドア"],["culture","文化","","趣味・アウトドア"],["party","パーティー","","行事・おもちゃ"],["festival","祭り、文化祭","","行事・おもちゃ"],["celebration","お祝い","","行事・おもちゃ"],["event","行事、出来事","","行事・おもちゃ"],["fireworks","花火","","行事・おもちゃ"],["balloon","風船","","行事・おもちゃ"],["kite","たこ","","行事・おもちゃ"],["toy","おもちゃ","","行事・おもちゃ"],["doll","人形","","行事・おもちゃ"],["robot","ロボット","","行事・おもちゃ"],["fun","楽しい、楽しみ","","行事・おもちゃ"]]},{"d":28,"t":"2026-12-11","w":[["job","仕事、職","","仕事・職場"],["business","仕事、商売","","仕事・職場"],["company","会社","","仕事・職場"],["office","事務所、会社","","仕事・職場"],["factory","工場","","仕事・職場"],["farm","農場","","仕事・職場"],["farmer","農家の人","","仕事・職場"],["engineer","技術者、エンジニア","","仕事・職場"],["driver","運転手","","仕事・職場"],["meeting","会議、集会","","仕事・職場"],["interview","面接、インタビュー","","仕事・職場"],["money","お金","","お金"],["dollar","ドル","","お金"],["coin","硬貨、コイン","","お金"],["price","値段","","お金"],["fee","料金、会費","","お金"],["bill","お勘定、紙幣","","お金"],["credit card","クレジットカード","","お金"],["receipt","レシート、領収書","","お金"],["sale","セール、特売","","お金"],["prize","賞、賞品","","お金"],["shop","店","","買い物"],["store","店","","買い物"],["supermarket","スーパーマーケット","","買い物"],["mall","ショッピングモール","","買い物"],["shopping","買い物","","買い物"],["gift","贈り物","","買い物"],["present","贈り物","","買い物"],["item","品物、項目","","買い物"]]},{"d":29,"t":"2026-12-12","w":[["phone","電話","","電話・連絡"],["telephone","電話","","電話・連絡"],["mobile","携帯電話","","電話・連絡"],["mobile phone","携帯電話","","電話・連絡"],["smartphone","スマートフォン","","電話・連絡"],["message","伝言、メッセージ","","電話・連絡"],["conversation","会話","","電話・連絡"],["letter","手紙","","電話・連絡"],["postcard","絵はがき","","電話・連絡"],["post","郵便；ポスト","","電話・連絡"],["address","住所","","電話・連絡"],["email","Eメール","","電話・連絡"],["e-mail","Eメール","","電話・連絡"],["computer","コンピューター","","ネット・パソコン"],["Internet","インターネット","","ネット・パソコン"],["website","ウェブサイト","","ネット・パソコン"],["site","場所；ウェブサイト","","ネット・パソコン"],["file","ファイル","","ネット・パソコン"],["code","暗号、コード","","ネット・パソコン"],["technology","技術；科学技術","","ネット・パソコン"],["channel","チャンネル","","ネット・パソコン"],["news","ニュース、知らせ","","ニュース・情報"],["newspaper","新聞","","ニュース・情報"],["magazine","雑誌","","ニュース・情報"],["article","記事","","ニュース・情報"],["information","情報","","ニュース・情報"],["list","リスト、一覧","","ニュース・情報"],["form","用紙、形","","ニュース・情報"],["survey","調査；アンケート","","ニュース・情報"],["vote","投票","","ニュース・情報"],["suggestion","提案","","ニュース・情報"]]},{"d":30,"t":"2026-12-13","w":[["war","戦争","","社会・できごと"],["peace","平和","","社会・できごと"],["ceremony","式、儀式","","社会・できごと"],["tradition","伝統","","社会・できごと"],["flag","旗","","社会・できごと"],["life","生活、人生","","社会・できごと"],["noise","音、騒音","","社会・できごと"],["action","行動、動き","","社会・できごと"],["matter","こと、問題","","社会・できごと"],["reason","理由","","社会・できごと"],["secret","秘密","","社会・できごと"],["head","頭","","顔・頭"],["face","顔","","顔・頭"],["hair","かみの毛","","顔・頭"],["haircut","散髪、ヘアカット","","顔・頭"],["eye","目","","顔・頭"],["ear","耳","","顔・頭"],["nose","鼻","","顔・頭"],["mouth","口","","顔・頭"],["tooth","歯","","顔・頭"],["neck","首","","顔・頭"],["throat","のど","","顔・頭"],["brain","脳、頭脳","","顔・頭"],["body","体","","体・手足"],["shoulder","肩","","体・手足"],["arm","うで","","体・手足"],["elbow","ひじ","","体・手足"],["hand","手","","体・手足"],["leg","脚","","体・手足"],["knee","ひざ","","体・手足"],["foot","足、フィート","","体・手足"],["heart","心、心臓","","体・手足"],["bone","骨","","体・手足"]]},{"d":31,"t":"2026-12-14","w":[["health","健康","","健康・病気"],["fever","熱","","健康・病気"],["cough","せき","","健康・病気"],["pain","痛み","","健康・病気"],["headache","頭痛","","健康・病気"],["stomachache","腹痛","","健康・病気"],["toothache","歯痛","","健康・病気"],["medicine","薬","","健康・病気"],["rest","休み、休けい","","健康・病気"],["smoking","きつえん","","健康・病気"],["happy","うれしい、幸せな","","うれしい・悲しい"],["sad","悲しい","","うれしい・悲しい"],["glad","うれしい","","うれしい・悲しい"],["sorry","ごめんなさい；気の毒に思って","","うれしい・悲しい"],["lonely","さびしい","","うれしい・悲しい"],["merry","楽しい、陽気な","","うれしい・悲しい"],["pleasure","喜び；楽しみ","","うれしい・悲しい"],["luck","運","","うれしい・悲しい"],["lucky","運のよい","","うれしい・悲しい"],["excited","わくわくした","","わくわく・おどろき"],["exciting","わくわくさせる（more exciting／most exciting）","","わくわく・おどろき"],["interested","興味がある","","わくわく・おどろき"],["interesting","おもしろい（more interesting／most interesting）","","わくわく・おどろき"],["boring","退屈な","","わくわく・おどろき"],["surprised","驚いた","","わくわく・おどろき"],["surprise","おどろき","","わくわく・おどろき"],["funny","おもしろい、こっけいな","","わくわく・おどろき"],["proud","誇りに思う","","わくわく・おどろき"]]},{"d":32,"t":"2026-12-15","w":[["angry","怒った","","心配・怒り"],["afraid","こわがって","","心配・怒り"],["nervous","緊張した","","心配・怒り"],["worried","心配している","","心配・怒り"],["shy","はずかしがりの","","心配・怒り"],["rude","失礼な；無作法な","","心配・怒り"],["strict","きびしい","","心配・怒り"],["care","世話、注意","","心配・怒り"],["careful","注意深い","","心配・怒り"],["healthy","健康な","","からだの状態"],["sick","病気の","","からだの状態"],["fine","元気な；晴れた；すばらしい","","からだの状態"],["hungry","おなかがすいた","","からだの状態"],["tired","疲れた","","からだの状態"],["sleepy","眠い","","からだの状態"],["awake","目がさめて","","からだの状態"],["busy","忙しい","","からだの状態"],["lazy","なまけ者の","","からだの状態"],["kind","種類；親切な","","人柄・見かけ"],["nice","すてきな、親切な","","人柄・見かけ"],["clever","頭のよい","","人柄・見かけ"],["smart","かしこい；おしゃれな","","人柄・見かけ"],["handsome","ハンサムな","","人柄・見かけ"],["young","若い、幼い","","人柄・見かけ"],["quiet","静かな","","人柄・見かけ"],["poor","貧しい；かわいそうな","","人柄・見かけ"],["rich","お金持ちの；豊かな","","人柄・見かけ"],["sure","確信して；まちがいない","","人柄・見かけ"]]},{"d":33,"t":"2026-12-16","w":[["feeling","感じ、気持ち","","心・考え"],["mind","心、考え","","心・考え"],["idea","考え、アイデア","","心・考え"],["dream","夢","","心・考え"],["wish","願い","","心・考え"],["memory","思い出、記憶","","心・考え"],["habit","習慣、くせ","","心・考え"],["self","自分、自己","","心・考え"],["black","黒い；黒","","色"],["white","白い；白","","色"],["red","赤い","","色"],["blue","青い；青","","色"],["green","緑色の","","色"],["yellow","黄色い、黄色","","色"],["brown","茶色の","","色"],["pink","ピンク色の","","色"],["purple","むらさき色（の）","","色"],["gray","灰色の","","色"],["gold","金色の、金","","色"],["color","色；色をぬる","","色"],["circle","円、丸","","形"],["round","丸い","","形"],["square","四角い","","形"],["flat","平らな","","形"],["line","線、列","","形"],["hole","穴","","形"],["top","上；てっぺん","","位置・部分"],["bottom","底、いちばん下","","位置・部分"],["front","前の、前（部）","","位置・部分"],["middle","真ん中の","","位置・部分"],["left","左の；左へ","","位置・部分"],["right","右の；正しい","","位置・部分"],["part","部分、役","","位置・部分"]]},{"d":34,"t":"2026-12-17","w":[["big","大きい","","大きさ・長さ"],["small","小さい","","大きさ・長さ"],["large","大きい、広い","","大きさ・長さ"],["little","小さい、少し","","大きさ・長さ"],["wide","はばの広い","","大きさ・長さ"],["long","長い","","大きさ・長さ"],["short","短い","","大きさ・長さ"],["tall","背が高い","","大きさ・長さ"],["size","サイズ","","大きさ・長さ"],["fat","太った","","太さ・高さ・重さ"],["thin","うすい；細い","","太さ・高さ・重さ"],["thick","厚い；太い","","太さ・高さ・重さ"],["high","高い","","太さ・高さ・重さ"],["low","低い","","太さ・高さ・重さ"],["deep","深い","","太さ・高さ・重さ"],["heavy","重い","","太さ・高さ・重さ"],["light","明かり；軽い","","太さ・高さ・重さ"],["strong","強い","","太さ・高さ・重さ"],["weak","弱い","","太さ・高さ・重さ"],["tight","きつい；ぴったりした","","太さ・高さ・重さ"],["new","新しい","","新旧・速さ"],["old","古い、年をとった","","新旧・速さ"],["fresh","新鮮な","","新旧・速さ"],["fast","速い、速く（faster／fastest）","","新旧・速さ"],["slow","遅い","","新旧・速さ"],["late","おそい、おくれて","","新旧・速さ"]]},{"d":35,"t":"2026-12-18","w":[["hot","熱い、暑い","","温度・天気"],["cold","寒い、冷たい；かぜ","","温度・天気"],["warm","あたたかい","","温度・天気"],["cool","すずしい；かっこいい","","温度・天気"],["dry","かわいた","","温度・天気"],["wet","ぬれた","","温度・天気"],["sunny","晴れた","","温度・天気"],["cloudy","くもりの","","温度・天気"],["rainy","雨の","","温度・天気"],["snowy","雪の降る","","温度・天気"],["windy","風の強い","","温度・天気"],["foggy","霧の深い","","温度・天気"],["delicious","とてもおいしい","","味"],["sweet","あまい","","味"],["sour","すっぱい","","味"],["spicy","からい、香辛料のきいた","","味"],["good","よい（比較級 better／最上級 best）","","よい・悪い"],["better","よりよい","","よい・悪い"],["best","いちばんよい；最もよく","","よい・悪い"],["bad","悪い（比較級 worse／最上級 worst）","","よい・悪い"],["great","すばらしい、大きな","","よい・悪い"],["excellent","すばらしい","","よい・悪い"],["wonderful","すばらしい","","よい・悪い"],["super","すばらしい；とてもよい","","よい・悪い"],["terrible","ひどい","","よい・悪い"],["beautiful","美しい（more beautiful／most beautiful）","","見た目"],["pretty","かわいい；きれいな","","見た目"],["cute","かわいい","","見た目"],["lovely","すてきな、かわいい","","見た目"],["ugly","みにくい","","見た目"],["bright","明るい","","見た目"],["dark","暗い","","見た目"],["dirty","よごれた","","見た目"],["blank","空白の","","見た目"]]},{"d":36,"t":"2026-12-19","w":[["correct","正しい","","正しい・ちがう"],["wrong","まちがった、具合が悪い","","正しい・ちがう"],["true","本当の","","正しい・ちがう"],["false","まちがった、うその","","正しい・ちがう"],["real","本当の；本物の","","正しい・ちがう"],["fair","公平な","","正しい・ちがう"],["same","同じ","","正しい・ちがう"],["different","ちがう","","正しい・ちがう"],["difference","ちがい","","正しい・ちがう"],["easy","やさしい、簡単な","","難易・値段"],["difficult","難しい","","難易・値段"],["hard","かたい、難しい；熱心に","","難易・値段"],["expensive","高価な","","難易・値段"],["cheap","安い","","難易・値段"],["free","ひまな、無料の","","難易・値段"],["famous","有名な（more famous／most famous）","","有名・役立つ"],["popular","人気のある（more popular／most popular）","","有名・役立つ"],["successful","成功した","","有名・役立つ"],["important","大切な（more important／most important）","","有名・役立つ"],["special","特別な","","有名・役立つ"],["useful","役に立つ","","有名・役立つ"],["international","国際的な","","有名・役立つ"],["foreign","外国の","","有名・役立つ"],["strange","変な；知らない","","有名・役立つ"]]},{"d":37,"t":"2026-12-20","w":[["empty","からの","","状態"],["full","いっぱいの、満腹の","","状態"],["closed","閉まっている","","状態"],["broken","こわれた","","状態"],["lost","道に迷った、なくした","","状態"],["crowded","こみ合った","","状態"],["ready","用意ができた","","状態"],["dangerous","危険な","","状態"],["living","生きている、生活の","","状態"],["thing","もの；こと","","ことがら"],["fact","事実","","ことがら"],["type","種類；タイプ","","ことがら"],["following","次の、以下の","","ことがら"],["ideal","理想的な","","ことがら"],["personal","個人の","","ことがら"],["own","自分自身の","","ことがら"],["favorite","お気に入りの","","ことがら"],["now","今","","いつ（時）"],["yesterday","きのう","","いつ（時）"],["ago","(今から)～前に","","いつ（時）"],["recently","最近","","いつ（時）"],["already","すでに、もう","","いつ（時）"],["yet","(否定文で)まだ、(疑問文で)もう","","いつ（時）"],["still","まだ；今でも","","いつ（時）"],["just","ちょうど、ただ","","いつ（時）"],["soon","まもなく、すぐに","","いつ（時）"],["later","あとで","","いつ（時）"],["someday","いつか","","いつ（時）"],["then","そのとき；それから","","いつ（時）"],["early","早い、早く","","いつ（時）"],["always","いつも","","回数・頻度"],["usually","ふつうは、たいてい","","回数・頻度"],["often","よく、しばしば","","回数・頻度"],["sometimes","ときどき","","回数・頻度"],["never","一度も～ない","","回数・頻度"],["once","1回、かつて","","回数・頻度"],["again","もう一度、また","","回数・頻度"]]},{"d":38,"t":"2026-12-21","w":[["here","ここに、ここで","","場所・方向"],["there","そこに；そこで","","場所・方向"],["somewhere","どこかに","","場所・方向"],["everywhere","どこでも","","場所・方向"],["away","離れて、あちらへ","","場所・方向"],["back","もどって、後ろに；背中","","場所・方向"],["forward","前へ","","場所・方向"],["down","下へ、下に","","場所・方向"],["off","はなれて、消えて","","場所・方向"],["out","外へ、外に","","場所・方向"],["outside","外で、外へ","","場所・方向"],["abroad","外国へ、外国で","","場所・方向"],["straight","まっすぐに","","場所・方向"],["quickly","すばやく；速く","","どんなふうに"],["carefully","注意深く","","どんなふうに"],["well","上手に（比較級 better／最上級 best）","","どんなふうに"],["alone","ひとりで","","どんなふうに"],["together","いっしょに","","どんなふうに"],["very","とても","","程度・つけたし"],["really","本当に","","程度・つけたし"],["too","〜もまた；〜すぎる","","程度・つけたし"],["only","〜だけ、唯一の","","程度・つけたし"],["almost","ほとんど","","程度・つけたし"],["maybe","たぶん、もしかすると","","程度・つけたし"],["also","～もまた","","程度・つけたし"],["either","～もまた(…ない)","","程度・つけたし"],["else","そのほかに","","程度・つけたし"]]},{"d":39,"t":"2026-12-22","w":[["be good at ~ing","〜が得意だ","","be＋形容詞＋前置詞"],["be late for","〜に遅れる","","be＋形容詞＋前置詞"],["be interested in","〜に興味がある","","be＋形容詞＋前置詞"],["be famous for","〜で有名だ","","be＋形容詞＋前置詞"],["be ready for","〜の準備ができている","","be＋形容詞＋前置詞"],["be afraid of","〜をこわがる","","be＋形容詞＋前置詞"],["be kind to","〜に親切だ","","be＋形容詞＋前置詞"],["be full of","〜でいっぱいだ","","be＋形容詞＋前置詞"],["be proud of","〜を誇りに思う","","be＋形容詞＋前置詞"],["be different from","〜と違う","","be＋形容詞＋前置詞"],["be absent from","〜を欠席する","","be＋形容詞＋前置詞"],["be busy with","〜で忙しい","","be＋形容詞＋前置詞"],["look for","〜をさがす","","動詞＋前置詞"],["look at","〜を見る","","動詞＋前置詞"],["wait for","〜を待つ","","動詞＋前置詞"],["listen to","〜を聞く","","動詞＋前置詞"],["arrive at","〜に着く","","動詞＋前置詞"],["get to","〜に着く","","動詞＋前置詞"],["talk about","〜について話す","","動詞＋前置詞"],["think about","〜について考える","","動詞＋前置詞"],["laugh at","〜を笑う","","動詞＋前置詞"],["worry about","〜を心配する","","動詞＋前置詞"],["hear from","〜から連絡をもらう","","動詞＋前置詞"],["ask for","〜を求める","","動詞＋前置詞"],["belong to","〜に所属している","","動詞＋前置詞"],["take care of","〜の世話をする","","動詞＋前置詞"],["look forward to","〜を楽しみに待つ","","動詞＋前置詞"]]},{"d":40,"t":"2026-12-23","w":[["take a picture","写真をとる","","動詞＋名詞"],["take a bath","ふろに入る","","動詞＋名詞"],["take a walk","散歩する","","動詞＋名詞"],["take a rest","休む","","動詞＋名詞"],["make a mistake","間違いをする","","動詞＋名詞"],["make friends","友だちを作る","","動詞＋名詞"],["make a speech","スピーチをする","","動詞＋名詞"],["have a good time","楽しい時を過ごす","","動詞＋名詞"],["get up","起きる","","生活・からだ"],["wake up","目を覚ます","","生活・からだ"],["get home","家に帰る","","生活・からだ"],["put away","かたづける","","生活・からだ"],["pick up","拾い上げる、車で迎えに行く","","生活・からだ"],["set the table","食卓の準備をする","","生活・からだ"],["catch a cold","かぜをひく","","生活・からだ"],["take medicine","薬を飲む","","生活・からだ"],["get well","（病気が）よくなる","","生活・からだ"],["feel better","気分がよくなる","","生活・からだ"],["stay in bed","寝ている","","生活・からだ"],["at first","最初は","","時を表す"],["at last","ついに","","時を表す"],["at that time","そのとき","","時を表す"],["for a long time","長い間","","時を表す"],["all day","一日中","","時を表す"],["after school","放課後","","時を表す"],["in the future","将来","","時を表す"],["many times","何度も","","時を表す"]]},{"d":41,"t":"2026-12-24","w":[["a lot of","たくさんの","","数・量"],["a few","少しの（数）","","数・量"],["a little","少しの（量）","","数・量"],["a piece of","1切れの、1枚の","","数・量"],["a pair of","1組の、1足の","","数・量"],["all right","大丈夫な；わかりました","","よく使う表現"],["each other","おたがい","","よく使う表現"],["have to","〜しなければならない","","よく使う表現"],["all over the world","世界中で","","よく使う表現"],["hello","こんにちは","","あいさつ"],["hi","やあ、こんにちは","","あいさつ"],["good morning","おはよう","","あいさつ"],["good afternoon","こんにちは（午後）","","あいさつ"],["good night","おやすみなさい","","あいさつ"],["bye","さようなら","","あいさつ"],["goodbye","さようなら","","あいさつ"],["dear","親愛なる～","","あいさつ"],["sir","（男性への呼びかけ）〜さま","","あいさつ"],["thanks","ありがとう","","お礼・返事"],["You're welcome.","どういたしまして","","お礼・返事"],["welcome","ようこそ；歓迎する","","お礼・返事"],["congratulations","おめでとう","","お礼・返事"],["yes","はい","","お礼・返事"],["yeah","うん、そうだね","","お礼・返事"],["OK","いいよ、大丈夫","","お礼・返事"],["Of course.","もちろん","","お礼・返事"],["No problem.","問題ないよ／いいですよ","","お礼・返事"],["pardon","もう一度言ってください","","お礼・返事"],["please","どうぞ；お願いします","","お礼・返事"]]},{"d":42,"t":"2026-12-25","w":[["How about ~?","〜はどうですか","","誘う・答える"],["Why don't you ~?","〜してはどうですか","","誘う・答える"],["Let's ~.","〜しましょう","","誘う・答える"],["Shall I ~?","（私が）〜しましょうか","","誘う・答える"],["Would you like ~?","〜はいかがですか","","誘う・答える"],["Can I ~?","〜してもいいですか","","誘う・答える"],["That's a good idea.","それはいい考えですね","","誘う・答える"],["Sounds good.","いいですね","","誘う・答える"],["What's wrong?","どうしたの","","誘う・答える"],["May I help you?","いらっしゃいませ","","お店・電話"],["How much is this?","これはいくらですか","","お店・電話"],["I'd like ~.","〜がほしいのですが","","お店・電話"],["I'll take it.","それをいただきます","","お店・電話"],["Here you are.","はい、どうぞ","","お店・電話"],["Hold on, please.","（電話で）少し待ってください","","お店・電話"],["This is ~ speaking.","（電話で）こちらは〜です","","お店・電話"],["Can I take a message?","伝言をうかがいましょうか","","お店・電話"],["How can I get to ~?","〜へはどう行けばいいですか","","道案内"],["Go straight.","まっすぐ行ってください","","道案内"],["Turn left.","左に曲がってください","","道案内"],["It's on your right.","右手にあります","","道案内"],["one","1、1つの","","数 1〜10"],["two","2；2つの","","数 1〜10"],["three","3；3つの","","数 1〜10"],["four","4","","数 1〜10"],["five","5","","数 1〜10"],["six","6；6つの","","数 1〜10"],["seven","7；7つの","","数 1〜10"],["eight","8","","数 1〜10"],["nine","9","","数 1〜10"],["ten","10；10の","","数 1〜10"]]},{"d":43,"t":"2026-12-26","w":[["eleven","11","","数 11〜20"],["twelve","12；12の","","数 11〜20"],["thirteen","13；13の","","数 11〜20"],["fourteen","14","","数 11〜20"],["fifteen","15","","数 11〜20"],["sixteen","16；16の","","数 11〜20"],["seventeen","17；17の","","数 11〜20"],["eighteen","18","","数 11〜20"],["nineteen","19","","数 11〜20"],["twenty","20；20の","","数 11〜20"],["thirty","30；30の","","30〜100万"],["forty","40","","30〜100万"],["fifty","50","","30〜100万"],["sixty","60；60の","","30〜100万"],["seventy","70；70の","","30〜100万"],["eighty","80","","30〜100万"],["ninety","90","","30〜100万"],["hundred","100","","30〜100万"],["thousand","1000","","30〜100万"],["million","100万","","30〜100万"],["first","第1の、最初の","","序数"],["second","第2の、2番目の","","序数"],["third","第3の、3番目の","","序数"],["fifth","第5の、5番目の","","序数"],["eleventh","第11の、11番目の","","序数"],["twelfth","第12の、12番目の","","序数"],["twentieth","第20の、20番目の","","序数"]]},{"d":44,"t":"2026-12-27","w":[["many","多くの（比較級 more／最上級 most）","","多い・少ない"],["much","たくさん（比較級 more／最上級 most）","","多い・少ない"],["lot","たくさん（a lot of）","","多い・少ない"],["more","もっと多くの；もっと多く","","多い・少ない"],["most","ほとんどの、最も","","多い・少ない"],["few","少しの、ほとんどない","","多い・少ない"],["less","より少ない、より少なく","","多い・少ない"],["half","半分","","多い・少ない"],["twice","2回、2倍","","多い・少ない"],["number","数、番号","","数え方・単位"],["sum","合計；金額","","数え方・単位"],["pair","1組、1足","","数え方・単位"],["piece","1つ、1切れ","","数え方・単位"],["row","列","","数え方・単位"],["meter","メートル","","数え方・単位"],["at","～で、～に","","場所 at・in・on"],["in","〜の中に、〜に","","場所 at・in・on"],["on","〜の上に","","場所 at・in・on"],["inside","〜の中に、中で","","場所 at・in・on"],["into","〜の中へ","","場所 at・in・on"],["near","～の近くに","","場所 at・in・on"],["beside","～のそばに","","場所 at・in・on"],["by","～のそばに；～で(手段)","","場所 at・in・on"],["around","～のまわりに","","場所 at・in・on"],["above","～の上に","","上下・前後"],["below","～の下に","","上下・前後"],["over","〜の上に、〜を越えて","","上下・前後"],["under","～の下に","","上下・前後"],["up","上へ；上に","","上下・前後"],["behind","～の後ろに","","上下・前後"],["between","～の間に","","上下・前後"],["from","〜から、〜出身の","","動き・通り道"],["to","〜へ；〜まで；〜すること","","動き・通り道"],["across","～を横切って","","動き・通り道"],["along","～に沿って","","動き・通り道"],["through","～を通りぬけて","","動き・通り道"],["past","〜をすぎて","","動き・通り道"]]},{"d":45,"t":"2026-12-28","w":[["before","～の前に","","時間"],["after","～のあとに","","時間"],["during","～の間じゅう","","時間"],["since","～以来、～なので","","時間"],["until","～までずっと","","時間"],["and","そして、～と","","つなぐ語"],["or","または、それとも","","つなぐ語"],["but","しかし、でも","","つなぐ語"],["so","だから；それで","","つなぐ語"],["because","なぜなら、～なので","","つなぐ語"],["if","もし〜なら","","つなぐ語"],["however","しかし","","つなぐ語"],["than","〜よりも","","つなぐ語"],["of","〜の","","のために・と"],["for","〜のために、〜の間","","のために・と"],["with","〜といっしょに；〜で","","のために・と"],["without","～なしで","","のために・と"],["about","～について；約","","のために・と"],["as","～として；～のように","","のために・と"],["I","私は","","私たち"],["me","私を、私に","","私たち"],["my","私の","","私たち"],["mine","私のもの","","私たち"],["we","私たちは","","私たち"],["us","私たちを；私たちに","","私たち"],["our","私たちの","","私たち"],["ours","私たちのもの","","私たち"]]},{"d":46,"t":"2026-12-29","w":[["you","あなた、あなたたち","","あなた"],["your","あなたの、あなたたちの","","あなた"],["yours","あなたのもの","","あなた"],["yourself","あなた自身","","あなた"],["he","彼は","","彼・彼女"],["him","彼を、彼に","","彼・彼女"],["his","彼の、彼のもの","","彼・彼女"],["she","彼女は","","彼・彼女"],["her","彼女の；彼女を","","彼・彼女"],["hers","彼女のもの","","彼・彼女"],["herself","彼女自身","","彼・彼女"],["they","彼らは","","彼ら・それ"],["them","彼らを；彼らに","","彼ら・それ"],["their","彼らの","","彼ら・それ"],["it","それは、それを","","彼ら・それ"],["its","それの","","彼ら・それ"],["this","これ；この","","これ・あれ"],["these","これらの","","これ・あれ"],["that","あれ；あの；〜ということ","","これ・あれ"],["those","あれらの","","これ・あれ"],["a","1つの、ある","","a・the・ほか"],["an","1つの","","a・the・ほか"],["the","その〜（特定の物につく）","","a・the・ほか"],["other","ほかの","","a・the・ほか"],["another","もう1つの、別の","","a・the・ほか"]]},{"d":47,"t":"2026-12-30","w":[["all","すべて(の)","","すべて・みんな"],["both","両方（の）","","すべて・みんな"],["each","それぞれ(の)","","すべて・みんな"],["every","すべての、毎～","","すべて・みんな"],["everybody","みんな","","すべて・みんな"],["everyone","みんな","","すべて・みんな"],["everything","すべてのこと","","すべて・みんな"],["some","いくつかの；いくらかの","","何か・だれか"],["someone","だれか","","何か・だれか"],["something","何か；あるもの","","何か・だれか"],["any","いくつかの、少しも","","何か・だれか"],["anybody","だれか、だれでも","","何か・だれか"],["anyone","だれか、だれでも","","何か・だれか"],["anything","何か、何でも","","何か・だれか"],["nothing","何も〜ない","","何か・だれか"],["no","いいえ、一つも〜ない","","何か・だれか"],["not","〜ない","","何か・だれか"],["can","～できる","","できる・すべき"],["could","～できた；～していただけますか","","できる・すべき"],["may","〜かもしれない、〜してもよい","","できる・すべき"],["must","〜しなければならない","","できる・すべき"],["should","〜したほうがよい","","できる・すべき"],["will","〜でしょう；〜するつもり","","できる・すべき"],["would","〜だろう；〜してくれませんか","","できる・すべき"],["what","何；どんな","","疑問詞"],["who","だれ","","疑問詞"],["whose","だれの","","疑問詞"],["which","どちら；どの","","疑問詞"],["when","いつ；〜のとき","","疑問詞"],["where","どこ；どこで","","疑問詞"],["why","なぜ","","疑問詞"],["how","どう、どのように","","疑問詞"]]}];
+const PK='kanako-eng-promoted-v1';
+let promoted=store.get(PK,{});           // 抜き打ちで×だった語 → カードに加える
+const DECK_EN=new Set(DECK.map(c=>c.en));
+function allCards(){
+  const extra=Object.entries(promoted).filter(([en])=>!DECK_EN.has(en))
+    .map(([en,v])=>({en,ja:v.ja,past:v.past||undefined,kind:en.includes(' ')&&/[.?!]$/.test(en)?'sentence':'word',src:'spot',spot:v.day,note:`抜き打ち（${v.when}）で×だった語。朝ドリルでは✓なし`}));
+  return DECK.concat(extra);
+}
+const dayLabel=d=>`Day${String(d.d).padStart(2,'0')} ${+d.t.slice(5,7)}/${+d.t.slice(8,10)}`;
+// 抜き打ちの範囲＝加奈子がやったシートの結果を取り込んだ日（カレンダーの日付では決めない）
+const DONE=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+const STUDIED=DAYS.filter(d=>DONE.includes(d.d));
+const SPOTWORDS=[];
+// 意味の列の「（begin to＋原形）」のような英語入りの補足は、答えが見えるので外す
+const cleanJa=ja=>ja.replace(/（[^）]*[A-Za-z][^）]*）/g,'').replace(/\([^)]*[A-Za-z][^)]*\)/g,'').trim()||ja;
+for(const d of DAYS)for(const [en,ja,past,sub] of d.w)SPOTWORDS.push({en,ja:cleanJa(ja),past,sub,day:dayLabel(d),d:d.d});
+const WBY=new Map(SPOTWORDS.map(w=>[w.en,w]));
+const PAIRS=[['son','daughter'],['husband','wife'],['brother','sister'],['father','mother'],['dad','mom'],['daddy','mommy'],
+  ['grandfather','grandmother'],['grandpa','grandma'],['uncle','aunt'],['boy','girl'],['man','woman'],['king','queen'],
+  ['prince','princess'],['nephew','niece'],['actor','actress'],['boyfriend','girlfriend'],['grandparent','grandchild'],['parent','child'],
+  ['borrow','lend'],['bring','take'],['teach','learn'],['buy','sell'],['win','lose'],['open','close'],['come','go'],['push','pull'],
+  ['arrive','leave'],['ask','answer'],['remember','forget'],['start','finish'],['begin','finish'],['give','receive'],['see','watch'],['look','see'],
+  ['say','tell'],['speak','talk'],['hear','listen']];
+const PARTNER={};for(const [a,b] of PAIRS){(PARTNER[a]||=[]).push(b);(PARTNER[b]||=[]).push(a)}
+const toks=ja=>ja.replace(/（[^）]*）|\([^)]*\)/g,'').split(/[、；，,・\s]+/).map(s=>s.replace(/^[〜～]/,'')).filter(Boolean);
+const overlap=(a,b)=>{const A=new Set(toks(a.ja));return toks(b.ja).some(t=>A.has(t))};
+function spotRange(){const v=$('range').value;return v==='all'||!v?STUDIED:DAYS.filter(d=>String(d.d)===v)}
+function spotPool(days){const s=new Set(days.map(d=>d.d));return SPOTWORDS.filter(w=>s.has(w.d))}
+function spotWeight(w){const h=hist['spot:'+w.en];if(!h||!h.seen)return 6;return h.miss?2+h.miss:1}
+function pickSpots(n,days){
+  const rest=[...spotPool(days)], out=[];
+  while(out.length<n&&rest.length){
+    const ws=rest.map(spotWeight);let r=Math.random()*ws.reduce((a,b)=>a+b,0);
+    const k=ws.findIndex(w=>(r-=w)<0);out.push(rest.splice(k<0?rest.length-1:k,1)[0]);
+  }
+  return out.map(w=>({type:'spot',dir:Math.random()<.5?'ej4':'je4',item:w,key:'spot:'+w.en}));
+}
+// 4択の選択肢：組の語（son↔daughter など）を必ず入れ、残りは同じ小グループ→同じ日→学んだ範囲の順。意味が重なる語は入れない
+function spotChoices(w){
+  const pool=SPOTWORDS.filter(x=>x.d<=Math.max(w.d,STUDIED.length?STUDIED[STUDIED.length-1].d:w.d));
+  const picked=[w];
+  const ok=x=>x.en!==w.en&&!picked.includes(x)&&picked.every(p=>!overlap(p,x));
+  for(const en of PARTNER[w.en]||[]){const x=WBY.get(en);if(x&&ok(x)&&picked.length<4)picked.push(x)}
+  const shuffle=a=>a.map(v=>[Math.random(),v]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+  for(const tier of [pool.filter(x=>x.sub===w.sub),pool.filter(x=>x.d===w.d),pool])
+    for(const x of shuffle(tier)){if(picked.length>=4)break;if(ok(x))picked.push(x)}
+  return shuffle(picked);
+}
+function promote(w){
+  if(!promoted[w.en]){const t=new Date();promoted[w.en]={ja:w.ja,past:w.past||'',day:w.day,when:`${t.getMonth()+1}/${t.getDate()}`};store.set(PK,promoted)}
+  const r=rec(w.en); r.w.ej=Math.max(r.w.ej||0,4); r.w.je=Math.max(r.w.je||0,4); store.set(HK,hist);
+}
+
+const POOLS={all:()=>allCards(),chk:()=>allCards().filter(c=>c.src==='chk'),need:()=>allCards().filter(c=>c.src==='ans'||c.src==='common'||c.src==='spot')};
+let pool=store.get('kanako-eng-pool','all');
+const deckNow=()=>POOLS[pool]?POOLS[pool]():allCards();
+let hist=store.get(HK,null);
+if(!hist){hist=seed();store.set(HK,hist)}
+let last=store.get(LK,{});
+let mode=store.get('kanako-eng-mode','ej');
+try{const t=localStorage.getItem('kanako-eng-timed');if(t)$('timed').checked=t==='on';
+    const y=localStorage.getItem('kanako-eng-typing');if(y)$('typing').checked=y==='on';}catch{}
+
+// ---------- 音声 ----------
+let AUDIO=null, audioFailed=false, player=null;
+function loadAudio(){
+  if(AUDIO||audioFailed)return Promise.resolve();
+  return fetch('audio.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{AUDIO=j}).catch(()=>{audioFailed=true});
+}
+function stopAudio(){try{speechSynthesis.cancel()}catch{} if(player){player.pause();player=null}}
+function speak(text){
+  stopAudio();
+  try{const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.9;speechSynthesis.speak(u);return true}catch{return false}
+}
+function playKey(key,fallbackText){
+  stopAudio();
+  const src=AUDIO&&AUDIO[key];
+  if(!src) return fallbackText?speak(fallbackText):false;
+  const a=new Audio(src); player=a; a.play().catch(()=>{if(fallbackText)speak(fallbackText)});
+  return true;
+}
+
+// ---------- 判定 ----------
+const CONTR={"doesn't":"does not","don't":"do not","isn't":"is not","aren't":"are not","it's":"it is","i'm":"i am",
+  "what's":"what is","that's":"that is","he's":"he is","she's":"she is","can't":"cannot","didn't":"did not","wasn't":"was not","weren't":"were not"};
+function norm(s){
+  let t=(s||'').normalize('NFKC').toLowerCase().replace(/[’‘`´]/g,"'").replace(/[.,!?;:"“”()]/g,' ').replace(/\s+/g,' ').trim();
+  t=t.split(' ').map(w=>CONTR[w]||w).join(' ').replace(/\bcan not\b/g,'cannot');
+  return t;
+}
+function judge(card,base,past){
+  const b=norm(base), p=norm(past);
+  const forms=[[card.en,card.past||null],...(card.accept||[])];
+  for(const [e,ps] of forms){
+    if(b===norm(e)) return {ok:!card.past||!ps||p===norm(ps), baseOk:true, pastOk:!card.past||!ps||p===norm(ps), alt:null};
+  }
+  for(const [e,ps] of (card.alts||[])){
+    if(b===norm(e)){const pastOk=!card.past||p===norm(ps);return {ok:pastOk,baseOk:true,pastOk,alt:e}}
+  }
+  return {ok:false,baseOk:false,pastOk:!card.past||p===norm(card.past),alt:null};
+}
+// 正しい答えのうち、打った答えに無い文字を色づけ（LCS）
+function diffHTML(correct,given){
+  const a=correct, b=(given||'').normalize('NFKC');
+  const A=a.toLowerCase(), B=b.toLowerCase().replace(/[’]/g,"'");
+  const n=A.length,m=B.length, L=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)L[i][j]=A[i]===B[j]||(A[i]==='’'&&B[j]==="'")?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  const keepA=new Array(n).fill(false), keepB=new Array(m).fill(false);
+  let i=0,j=0;
+  while(i<n&&j<m){ if(A[i]===B[j]||(A[i]==='’'&&B[j]==="'")){keepA[i]=keepB[j]=true;i++;j++} else if(L[i+1][j]>=L[i][j+1])i++; else j++; }
+  const esc=c=>c.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const wrap=(s,keep,cls)=>[...s].map((c,k)=>keep[k]||c===' '?esc(c):`<span class="${cls}">${esc(c)}</span>`).join('');
+  return {right:wrap(a,keepA,'miss'), mine:b.trim()?wrap(b,keepB,'x'):'（空らん）'};
+}
+
+// ---------- 出題 ----------
+function rec(key){return hist[key] ||= {w:{},miss:0,seen:0}}
+function weight(key,dir){return 1+Math.min(9,(hist[key]?.w?.[dir])||0)}
+function sample(pool,count,keyOf,dir){
+  const rest=[...pool], out=[];
+  while(out.length<count&&rest.length){
+    const ws=rest.map(x=>weight(keyOf(x),dir)); let r=Math.random()*ws.reduce((a,b)=>a+b,0);
+    const k=ws.findIndex(w=>(r-=w)<0); out.push(rest.splice(k<0?rest.length-1:k,1)[0]);
+  }
+  return out;
+}
+const cardEntry=(c,dir)=>({type:'card',dir,item:c,key:c.en});
+const listenEntry=q=>({type:'listen',dir:'li',item:q,key:'listening:'+q.id});
+let queue=[],pos=0,results=[],isRetry=false,state=null,tick=null,deadline=0;
+
+function buildQueue(){
+  const D=deckNow();
+  if(mode==='spot') return pickSpots(10,spotRange());
+  if(mode==='li') return sample(LISTEN,10,q=>'listening:'+q.id,'li').map(listenEntry);
+  const nSpot=$('spotmix').checked&&STUDIED.length?2:0;
+  const insert=(arr,items)=>{for(const x of items)arr.splice(1+Math.floor(Math.random()*arr.length),0,x);return arr};
+  if(mode==='ej'||mode==='je') return insert(sample(D,10-nSpot,c=>c.en,mode).map(c=>cardEntry(c,mode)),pickSpots(nSpot,STUDIED));
+  const cs=sample(D,7-nSpot,c=>c.en,'ej').map(c=>cardEntry(c,'ej'));
+  insert(cs,sample(LISTEN,3,q=>'listening:'+q.id,'li').map(listenEntry));
+  return insert(cs,pickSpots(nSpot,STUDIED));
+}
+function begin(q,retry){
+  queue=q;pos=0;results=[];isRetry=retry;
+  $('home').hidden=true;$('game').hidden=false;
+  loadAudio().then(()=>{ if(state&&state.entry?.type==='listen') renderListen(); });
+  show();
+}
+function stopTimer(){clearInterval(tick);tick=null;$('clock').textContent=''}
+function startTimer(sec,onEnd){
+  stopTimer(); if(!$('timed').checked)return;
+  deadline=performance.now()+sec*1000;
+  const upd=()=>{const s=Math.max(0,Math.ceil((deadline-performance.now())/1000));$('clock').textContent='のこり '+s+' 秒';if(s===0){stopTimer();onEnd()}};
+  upd(); tick=setInterval(upd,100);
+}
+function header(){
+  const n=queue.length;
+  $('count').textContent=Math.min(pos+1,n)+' / '+n+' 問'+(isRetry?'（×だけ）':'');
+  $('right').textContent='○ '+results.filter(r=>r.ok).length;
+  $('barfill').style.width=(pos/n*100)+'%';
+}
+function show(){
+  stopAudio();stopTimer();
+  if(pos>=queue.length)return finish();
+  const entry=queue[pos]; state={entry,revealed:false,done:false,plays:0,choice:null};
+  header();
+  if(entry.type==='listen')renderListen();
+  else if(entry.type==='spot')renderSpot();
+  else if(entry.dir==='je'&&$('typing').checked)renderType();
+  else renderFlip();
+}
+function next(ok,given){
+  if(state.done)return; state.done=true; stopTimer();
+  const e=state.entry, r=rec(e.key);
+  r.seen++; if(!ok)r.miss++;
+  r.w[e.dir]=Math.max(0,(r.w[e.dir]||0)+(ok?-1:2));
+  store.set(HK,hist);
+  results.push({entry:e,ok,given});
+}
+function advance(){pos++;show()}
+const el=(html)=>{const t=document.createElement('template');t.innerHTML=html.trim();return t.content};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+// 英→日（と、打ちこまない日→英）：カードをめくって自分で○×
+function renderFlip(){
+  const {entry}=state, c=entry.item, rev=entry.dir==='je', sent=c.kind==='sentence';
+  const stage=$('stage'); stage.replaceChildren();
+  const qText=rev?c.ja:c.en, aText=rev?c.en:c.ja;
+  const card=el(`<button type="button" class="card" id="flip">
+    ${chip(c)}<span class="tag">${rev?'英語で言おう':'日本語で言おう'}${rev&&c.past?'（過去形も）':''}</span>
+    <span class="q ${sent?'sent':''}" lang="${rev?'ja':'en'}">${esc(qText)}</span>
+    <span class="ans" id="ansline" hidden lang="${rev?'en':'ja'}">${esc(aText)}${c.past?`<span class="past" lang="en">過去形 ${esc(c.past)}</span>`:''}${c.note?`<span class="note" lang="ja">${esc(c.note)}</span>`:''}</span>
+    <span class="hint" id="fliphint">答えを思いうかべてから、カードをタップ</span></button>`);
+  stage.append(card);
+  stage.append(el(`<div class="row"><button type="button" id="say" ${rev?'disabled':''}>▶ 発音を聞く</button></div>
+    <div class="row" id="marks" hidden><button type="button" class="primary" id="ok">○ 言えた</button><button type="button" id="ng">× 言えなかった</button></div>
+    <div class="row" id="nextrow" hidden><button type="button" class="primary" id="go">次へ</button></div>`));
+  $('say').onclick=()=>playKey('w:'+c.en,c.en);
+  const reveal=(timeout)=>{
+    if(state.revealed)return; state.revealed=true; stopTimer();
+    $('ansline').hidden=false; $('say').disabled=false;
+    if(timeout){$('fliphint').textContent='時間切れ ×';next(false,'');$('nextrow').hidden=false;$('go').focus()}
+    else{$('fliphint').textContent='言えたかどうか、自分で○か×';$('marks').hidden=false;$('ok').focus()}
+  };
+  $('flip').onclick=()=>reveal(false);
+  $('ok').onclick=()=>{next(true);advance()};
+  $('ng').onclick=()=>{next(false);advance()};
+  $('go').onclick=advance;
+  $('flip').focus();
+  startTimer(rev?(sent?40:20):10,()=>reveal(true));
+}
+
+// 日→英：つづりを打って自動で答え合わせ
+function renderType(){
+  const c=state.entry.item, sent=c.kind==='sentence';
+  const stage=$('stage'); stage.replaceChildren();
+  stage.append(el(`<div class="card">${chip(c)}<span class="tag">英語で書こう</span>
+    <span class="q ${sent?'sent':''}" lang="ja">${esc(c.ja)}</span>
+    ${c.past?'<span class="hint">ふつうの形と、過去形の2つを書く</span>':''}</div>
+    <form class="typing" id="tf" autocomplete="off">
+      <label>英語<input id="in1" lang="en" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="${c.past?'next':'done'}"></label>
+      ${c.past?'<label>過去形<input id="in2" lang="en" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>':''}
+      <button type="submit" class="primary" id="check">答え合わせ</button>
+    </form><div id="fb" style="display:grid;gap:10px"></div>`));
+  const submit=()=>{
+    if(state.revealed)return; state.revealed=true; stopTimer();
+    const g1=$('in1').value, g2=c.past?$('in2').value:'';
+    $('in1').disabled=true; if(c.past)$('in2').disabled=true; $('check').hidden=true;
+    const j=judge(c,g1,g2), d=diffHTML(c.en,g1), dp=c.past?diffHTML(c.past,g2):null;
+    const parts=[];
+    if(j.ok) parts.push(`<b>○ 正解</b>${j.alt?`<span>「${esc(j.alt)}」でも意味は通るので○。このカードで覚えたいのは <span lang="en">${esc(c.en)}</span></span>`:''}`);
+    else{
+      parts.push(`<b>×</b>`);
+      if(!j.baseOk) parts.push(`<span>正しい答え：<span class="diff" lang="en">${d.right}</span></span><span>あなたの答え：<span class="diff" lang="en">${d.mine}</span></span>`);
+      else parts.push(`<span>英語は○。過去形がちがう</span>`);
+      if(c.past&&!j.pastOk) parts.push(`<span>過去形：<span class="diff" lang="en">${dp.right}</span>（あなた：<span class="diff" lang="en">${dp.mine}</span>）</span>`);
+    }
+    if(j.ok&&c.past) parts.push(`<span lang="en">${esc(c.en)} → ${esc(c.past)}</span>`);
+    if(c.note) parts.push(`<span class="note">${esc(c.note)}</span>`);
+    $('fb').append(el(`<div class="verdict ${j.ok?'ok':'ng'}" role="status">${parts.join('')}</div>
+      <div class="row"><button type="button" id="say">▶ 発音を聞く</button><button type="button" class="primary" id="go">次へ</button></div>`));
+    $('say').onclick=()=>playKey('w:'+c.en,c.en);
+    $('go').onclick=advance; $('go').focus();
+    next(j.ok,g1+(c.past?' / '+g2:''));
+  };
+  $('tf').onsubmit=e=>{e.preventDefault();
+    if(c.past&&document.activeElement===$('in1')&&!$('in2').value){$('in2').focus();return}
+    submit()};
+  $('in1').focus();
+  startTimer(sent?40:20,submit);
+}
+
+// 抜き打ち：4択で自動判定。×なら「確かめたい語」へ
+function renderSpot(){
+  const {entry}=state, w=entry.item, ej=entry.dir==='ej4';
+  const opts=spotChoices(w);
+  const stage=$('stage'); stage.replaceChildren();
+  stage.append(el(`<div class="card"><span class="chip spot">抜き打ち・${esc(w.day)}の単語</span>
+    <span class="tag">${ej?'意味をえらぼう':'英語をえらぼう'}</span>
+    <span class="q" lang="${ej?'en':'ja'}">${esc(ej?w.en:w.ja)}</span></div>
+    <div class="choices" id="choices"></div><div id="fb" style="display:grid;gap:10px"></div>`));
+  const box=$('choices');
+  opts.forEach((o,i)=>{
+    const b=el(`<button type="button"><b>${i+1}</b><span lang="${ej?'ja':'en'}">${esc(ej?o.ja:o.en)}</span></button>`).firstChild;
+    b.onclick=()=>choose(i); box.append(b);
+  });
+  const right=opts.indexOf(w);
+  function choose(i){
+    if(state.revealed)return; state.revealed=true; stopTimer();
+    const ok=i===right;
+    box.classList.add('done');
+    box.querySelectorAll('button').forEach((b,k)=>{b.disabled=true;
+      b.querySelector('span').textContent=ej?`${opts[k].ja}（${opts[k].en}）`:`${opts[k].en}（${opts[k].ja}）`;
+      if(k===right)b.classList.add('right'); else if(k===i)b.classList.add('wrong');});
+    if(!ok) promote(w);
+    const pair=(PARTNER[w.en]||[]).filter(en=>WBY.has(en)).map(en=>`${en}＝${WBY.get(en).ja}`).join('／');
+    $('fb').append(el(`<div class="verdict ${ok?'ok':'ng'}" role="status"><b>${i<0?'時間切れ ×':ok?'○ 正解':'×'}</b>
+      <span><span lang="en">${esc(w.en)}</span>＝${esc(w.ja)}${w.past?`（過去形 <span lang="en">${esc(w.past)}</span>）`:''}</span>
+      ${pair?`<span class="note">組で覚える：<span lang="en">${esc(pair)}</span></span>`:''}
+      ${ok?'':'<span class="note">「確かめたい語」のカードに入れました</span>'}</div>
+      <div class="row"><button type="button" id="say">▶ 発音を聞く</button><button type="button" class="primary" id="go">次へ</button></div>`));
+    $('say').onclick=()=>playKey('w:'+w.en,w.en);
+    $('go').onclick=advance; $('go').focus();
+    next(ok,i<0?'':(ej?opts[i].ja:opts[i].en));
+  }
+  startTimer(10,()=>choose(-1));
+}
+
+// リスニング：聞いてから選ぶ。本番と同じく2回まで
+const PART={p1:'第1部　会話の応答',p2:'第2部　会話の内容',p3:'第3部　文の内容'};
+function renderListen(){
+  const q=state.entry.item, stage=$('stage'); stage.replaceChildren();
+  const p1=q.part==='p1';
+  stage.append(el(`<div class="card"><span class="tag">リスニング・${PART[q.part]||''}</span>
+    <span class="q">音声を聞いて答えよう</span>
+    <span class="hint">${p1?'最後の文への応答を、音声で流れる3つから選ぶ':'質問は音声だけ。選択肢から選ぶ'}</span></div>
+    <div class="row"><button type="button" class="primary" id="play"></button></div>
+    <div class="choices" id="choices"></div><div id="fb" style="display:grid;gap:10px"></div>`));
+  const playBtn=$('play');
+  const label=()=>{playBtn.textContent=state.revealed?'▶ もう一度聞く':state.plays===0?'▶ 音声を聞く（2回まで）':state.plays===1?'▶ もう一度聞く（あと1回）':'聞けるのは2回まで';
+    playBtn.disabled=!state.revealed&&state.plays>=2};
+  label();
+  playBtn.onclick=()=>{
+    if(!AUDIO){ playBtn.textContent=audioFailed?'音声を読みこめませんでした。開き直してください':'音声を読みこみ中…'; if(!audioFailed)loadAudio().then(()=>{label()}); return }
+    playKey('l:'+q.id,null); if(!state.revealed)state.plays++; label(); enable(true);
+  };
+  const box=$('choices');
+  q.opts.forEach((o,i)=>{
+    const b=el(`<button type="button" disabled data-i="${i+1}"><b>${i+1}</b><span lang="en">${p1?'':esc(o)}</span></button>`).firstChild;
+    b.onclick=()=>choose(i+1); box.append(b);
+  });
+  const enable=on=>{if(!state.revealed)box.querySelectorAll('button').forEach(b=>b.disabled=!on)};
+  enable(state.plays>0);
+  function choose(n){
+    if(state.revealed)return; state.revealed=true; label();
+    const ok=n===q.answer;
+    box.classList.add('done');
+    box.querySelectorAll('button').forEach((b,i)=>{b.disabled=true;
+      if(p1)b.querySelector('span').textContent=q.opts[i];
+      if(i+1===q.answer)b.classList.add('right'); else if(i+1===n)b.classList.add('wrong');});
+    $('fb').append(el(`<div class="verdict ${ok?'ok':'ng'}" role="status"><b>${ok?'○ 正解':'× 正解は '+q.answer}</b><span>${esc(q.explanation||'')}</span>${q.note?`<span class="note">${esc(q.note)}</span>`:''}</div>
+      <div class="script">台本：<span lang="en">${esc(q.script)}${q.prompt?' <b>'+esc(q.prompt)+'</b>':''}</span></div>
+      <div class="row"><button type="button" class="primary" id="go">次へ</button></div>`));
+    $('go').onclick=advance; $('go').focus();
+    next(ok,String(n));
+  }
+}
+
+// ---------- 結果 ----------
+const MODE_NAME={ej:'英語 → 日本語',je:'日本語 → 英語',mix:'英→日 ＋ リスニング',li:'リスニングだけ',spot:'抜き打ちチェック'};
+function finish(){
+  stopTimer(); header(); $('barfill').style.width='100%';
+  const n=queue.length, ok=results.filter(r=>r.ok).length, miss=results.filter(r=>!r.ok);
+  let delta='';
+  const key=scoreKey();
+  if(!isRetry){
+    const prev=last[key];
+    if(prev==null) delta='<span class="delta same">はじめての記録。次はこれと比べます</span>';
+    else if(ok>prev.score) delta=`<span class="delta up">前回 ${prev.score} → 今回 ${ok}　+${ok-prev.score}</span>`;
+    else if(ok===prev.score) delta=`<span class="delta same">前回と同じ ${ok}。キープ</span>`;
+    else delta=`<span class="delta down">前回 ${prev.score} → 今回 ${ok}。×のカードをもう一度やろう</span>`;
+    const best=Math.max(ok,prev?.best||0);
+    if(prev&&ok>(prev.best||0)) delta+='<span class="delta up">自己ベスト更新</span>';
+    last[key]={score:ok,best,at:Date.now()}; store.set(LK,last);
+  }else delta=`<span class="delta same">×だった ${n} 問のうち ${ok} 問を取り返した</span>`;
+  const items=miss.map(r=>{const e=r.entry,c=e.item;
+    if(e.type==='listen')return `<li><span><b>リスニング</b> ${esc(PART[c.part]||'')}：正解 ${c.answer}. <span lang="en">${esc(c.opts[c.answer-1])}</span></span><span class="small" lang="en">${esc(c.script)} ${esc(c.prompt||'')}</span>${r.given?`<span class="you">あなた：${esc(r.given)}</span>`:''}</li>`;
+    return `<li><span><span lang="en"><b>${esc(c.en)}</b></span>${c.past?` <span class="small" lang="en">(過去形 ${esc(c.past)})</span>`:''}</span><span>${esc(c.ja)}</span>${c.note?`<span class="small">${esc(c.note)}</span>`:''}${e.dir==='je'&&r.given?`<span class="you" lang="en">あなた：${esc(r.given)}</span>`:''}</li>`}).join('');
+  const stage=$('stage'); stage.replaceChildren();
+  stage.append(el(`<div class="result"><span class="tag">${MODE_NAME[mode]}</span>
+    <div class="score">${ok}<small> / ${n}</small></div>${delta}</div>
+    ${miss.length?`<h2 style="font-size:16px;margin:4px 0 0">×だったカード</h2><ul class="misses">${items}</ul>`:'<p style="text-align:center;margin:0">全問○。</p>'}
+    <div class="row">${miss.length?`<button type="button" class="primary" id="retry">×だけもう一度（${miss.length}問）</button>`:''}
+    <button type="button" id="again" ${miss.length?'':'class="primary"'}>次の10問</button></div>`));
+  if(miss.length)$('retry').onclick=()=>begin(miss.map(r=>r.entry),true);
+  $('again').onclick=()=>begin(buildQueue(),false);
+  ($('retry')||$('again')).focus();
+  $('count').textContent='おわり';
+}
+
+// ---------- はじめの画面 ----------
+function home(){
+  stopAudio();stopTimer();
+  $('game').hidden=true;$('home').hidden=false;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  const p=last[scoreKey()];
+  $('rangebox').hidden=mode!=='spot';
+  if(!$('range').options.length){
+    const last=STUDIED[STUDIED.length-1];
+    $('range').append(new Option(last?`これまでの単語ぜんぶ（${dayLabel(STUDIED[0])}〜${dayLabel(last)}・まだ出ていない語から）`:'まだ学んだ日がありません','all'));
+    for(const d of STUDIED.slice().reverse()) $('range').append(new Option(`${dayLabel(d)}の単語だけ（${d.w.length}語）`,String(d.d)));
+    $('range').value=store.get('kanako-eng-range','all'); if(!$('range').value)$('range').value='all';
+  }
+  const sp=spotPool(STUDIED), tested=sp.filter(w=>hist['spot:'+w.en]?.seen), missed=tested.filter(w=>hist['spot:'+w.en].miss);
+  $('spotline').textContent=STUDIED.length?`抜き打ち：結果を取り込んだ ${dayLabel(STUDIED[0])}〜${dayLabel(STUDIED[STUDIED.length-1])} の ${sp.length}語のうち ${tested.length}語を確かめた（×だった語 ${missed.length}）`:'';
+  const rangeName=mode==='spot'?($('range').value==='all'?'これまでぜんぶ':$('range').selectedOptions[0]?.text.split('の単語')[0]):'';
+  const what=MODE_NAME[mode]+(mode==='li'?'':mode==='spot'?`（${rangeName}）`:`（${POOL_NAME[pool]}）`);
+  $('lastline').textContent=p?`${what}の前回：${p.score} / 10（自己ベスト ${p.best}）。今日はこれを超えよう`:`${what}はまだ記録なし`;
+  for(const k of Object.keys(POOLS)){$('n-'+k).textContent=POOLS[k]().length+'まい';$('pool-'+k).checked=k===pool}
+  $('sub').textContent=`${allCards().length}まいのカード ＋ 英検4級型リスニング${LISTEN.length}問`;
+  renderWeak();
+}
+const POOL_NAME={all:'ぜんぶ',chk:'チェックした語',need:'確かめたい語'};
+$('range').onchange=()=>{store.set('kanako-eng-range',$('range').value);home()};
+$('spotmix').onchange=()=>{try{localStorage.setItem('kanako-eng-spotmix',$('spotmix').checked?'on':'off')}catch{}};
+try{const s=localStorage.getItem('kanako-eng-spotmix');if(s)$('spotmix').checked=s==='on'}catch{}
+function scoreKey(){if(mode==='spot')return 'spot/'+($('range').value||'all');return mode+(mode==='li'?'':'/'+pool)+($('typing').checked||mode!=='je'?'':'-self')}
+document.querySelectorAll('input[name="pool"]').forEach(r=>r.onchange=()=>{if(r.checked){pool=r.value;store.set('kanako-eng-pool',pool);home()}});
+function weakList(){
+  const rows=[];
+  for(const [k,v] of Object.entries(hist)){ if(!v.miss)continue;
+    let label=k;
+    if(k.startsWith('spot:')){const w=WBY.get(k.slice(5));label=w?`抜き打ち ${w.en}　${w.ja}（${w.day}）`:k}
+    else if(k.startsWith('listening:')){const q=LISTEN.find(x=>'listening:'+x.id===k);label=q?`リスニング ${q.id}（${q.prompt||q.script.slice(0,40)}）`:k}
+    else{const c=DECK.find(x=>x.en===k);if(c)label=`${c.en}　${c.ja}`}
+    rows.push({label,miss:v.miss,seen:v.seen});
+  }
+  return rows.sort((a,b)=>b.miss-a.miss||b.miss/b.seen-a.miss/a.seen).slice(0,15);
+}
+function renderWeak(){
+  const rows=weakList();
+  $('weak').innerHTML=rows.length?rows.map(r=>`<li>${esc(r.label)} <span>× ${r.miss} / ${r.seen}回</span></li>`).join(''):'<li style="list-style:none;margin-left:-1.4em">まだ×の記録はありません</li>';
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;store.set('kanako-eng-mode',mode);home()});
+$('timed').onchange=()=>{try{localStorage.setItem('kanako-eng-timed',$('timed').checked?'on':'off')}catch{}};
+$('typing').onchange=()=>{try{localStorage.setItem('kanako-eng-typing',$('typing').checked?'on':'off')}catch{};home()};
+$('start').onclick=()=>begin(buildQueue(),false);
+$('quit').onclick=home;
+$('copyweak').onclick=()=>{
+  const text=weakList().map(r=>`${r.label}（× ${r.miss}/${r.seen}回）`).join('\n')||'×の記録なし';
+  const done=()=>$('parentmsg').textContent='コピーしました';
+  try{navigator.clipboard.writeText(text).then(done,()=>{$('parentmsg').textContent=text})}catch{$('parentmsg').textContent=text}
+};
+let resetArmed=false;
+$('reset').onclick=()=>{
+  if(!resetArmed){resetArmed=true;$('reset').textContent='本当に消す（もう一度押す）';$('parentmsg').textContent='前回の点数と×の記録が消えます';return}
+  hist=seed();last={};promoted={};store.set(HK,hist);store.set(LK,last);store.set(PK,promoted);resetArmed=false;$('reset').textContent='記録を消す';$('parentmsg').textContent='記録を消しました';home();
+};
+home();
+</script>
+
+</body>
+</html>
