@@ -158,7 +158,6 @@ summary{cursor:pointer;font-weight:700;font-size:14px}
     <div class="opts">
       <label><input type="checkbox" id="timed" checked> 時間を計る（英→日 10秒／日→英 単語20秒・文40秒）</label>
       <label><input type="checkbox" id="typing" checked> 日→英は打ちこんで答える（はずすと頭の中で答えて自分で○×）</label>
-      <label><input type="checkbox" id="spotmix" checked> カードの回にも抜き打ちを2問まぜる</label>
     </div>
     <button type="button" id="start" class="primary">スタート</button>
     <p class="small" id="lastline"></p>
@@ -276,9 +275,20 @@ function loadAudio(){
   return fetch('audio.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{AUDIO=j}).catch(()=>{audioFailed=true});
 }
 function stopAudio(){try{speechSynthesis.cancel()}catch{} if(player){player.pause();player=null}}
+// 録音のない語は端末の読み上げを使う。声を指定しないと日本語の声で読まれる端末がある（2026-11-26 know で発生）ので、
+// 必ず英語の声を選ぶ。英語の声がない端末では読み上げない（日本語の声で読ませない）
+let EN_VOICE=null;
+function pickVoice(){
+  try{const vs=speechSynthesis.getVoices();
+    EN_VOICE=vs.find(v=>/^en[-_]US/i.test(v.lang)&&/Samantha|Google US English|Aria|Jenny|Zira|Alex/i.test(v.name))
+      ||vs.find(v=>/^en[-_]US/i.test(v.lang))||vs.find(v=>/^en[-_]/i.test(v.lang))||null}catch{}
+}
+try{pickVoice();speechSynthesis.addEventListener('voiceschanged',pickVoice)}catch{}
 function speak(text){
   stopAudio();
-  try{const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=.9;speechSynthesis.speak(u);return true}catch{return false}
+  if(!EN_VOICE)pickVoice();
+  if(!EN_VOICE){const b=$('say');if(b)b.textContent='この端末には英語の声がありません';return false}
+  try{const u=new SpeechSynthesisUtterance(text);u.voice=EN_VOICE;u.lang=EN_VOICE.lang;u.rate=.9;speechSynthesis.speak(u);return true}catch{return false}
 }
 function playKey(key,fallbackText){
   stopAudio();
@@ -340,7 +350,7 @@ function buildQueue(){
   const D=deckNow();
   if(mode==='spot') return pickSpots(10,spotRange());
   if(mode==='li') return sample(LISTEN,10,q=>'listening:'+q.id,'li').map(listenEntry);
-  const nSpot=$('spotmix').checked&&STUDIED.length?2:0;
+  const nSpot=0; // カードの回に4択をまぜるのはやめた（2026-11-26 須藤さん：分かりにくくなる）。4択は「抜き打ちチェック」だけ
   const insert=(arr,items)=>{for(const x of items)arr.splice(1+Math.floor(Math.random()*arr.length),0,x);return arr};
   if(mode==='ej'||mode==='je') return insert(sample(D,10-nSpot,c=>c.en,mode).map(c=>cardEntry(c,mode)),pickSpots(nSpot,STUDIED));
   const cs=sample(D,7-nSpot,c=>c.en,'ej').map(c=>cardEntry(c,'ej'));
@@ -589,8 +599,6 @@ function home(){
 }
 const POOL_NAME={all:'ぜんぶ',chk:'チェックした語',need:'確かめたい語'};
 $('range').onchange=()=>{store.set('kanako-eng-range',$('range').value);home()};
-$('spotmix').onchange=()=>{try{localStorage.setItem('kanako-eng-spotmix',$('spotmix').checked?'on':'off')}catch{}};
-try{const s=localStorage.getItem('kanako-eng-spotmix');if(s)$('spotmix').checked=s==='on'}catch{}
 function scoreKey(){if(mode==='spot')return 'spot/'+($('range').value||'all');return mode+(mode==='li'?'':'/'+pool)+($('typing').checked||mode!=='je'?'':'-self')}
 document.querySelectorAll('input[name="pool"]').forEach(r=>r.onchange=()=>{if(r.checked){pool=r.value;store.set('kanako-eng-pool',pool);home()}});
 function weakList(){
