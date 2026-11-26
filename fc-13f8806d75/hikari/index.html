@@ -7,6 +7,21 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <style>html,body{margin:0}[hidden]{display:none!important}</style>
+<script>
+(function(){
+  var E=window.Element&&Element.prototype;
+  if(E&&!E.replaceChildren){E.replaceChildren=function(){while(this.firstChild)this.removeChild(this.firstChild);
+    for(var i=0;i<arguments.length;i++){var a=arguments[i];this.appendChild(typeof a==='string'?document.createTextNode(a):a)}}}
+  var shown=false;
+  function banner(msg){if(shown)return;shown=true;
+    function put(){var d=document.createElement('div');
+      d.setAttribute('style','position:fixed;left:0;right:0;top:0;z-index:99999;background:#fff3cd;color:#5c4400;border-bottom:2px solid #c99a00;padding:12px 16px;font:15px/1.6 sans-serif');
+      d.textContent='うまく動いていません。この画面の写真をお父さんに送ってください。（'+msg+' ／ '+navigator.userAgent+'）';
+      document.body.appendChild(d)}
+    if(document.body)put();else document.addEventListener('DOMContentLoaded',put)}
+  window.addEventListener('error',function(e){banner((e&&e.message)||'エラー')});
+})();
+</script>
 <script src="../fclog.js"></script>
 </head>
 <body>
