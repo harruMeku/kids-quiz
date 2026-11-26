@@ -1,6 +1,6 @@
 // フラッシュカードの記録をお父さんのスプレッドシートへ送る（sync_flashcards_pages.py が生成）
 (function(){
-  var URL="", T="fc-13f8806d75";
+  var URL="https://script.google.com/macros/s/AKfycbyJ2ssP7IaImnw5Y6S4sCcAevxoeSeVda0jrdG7gpwVUsnu0OaRfvlOe2flmgjyavKm/exec", T="fc-13f8806d75";
   function send(d){try{d.t=T;d.ua=navigator.userAgent;
     fetch(URL,{method:'POST',mode:'no-cors',keepalive:true,body:JSON.stringify(d)})}catch(e){}}
   window.fcLog=function(d){if(URL)send(d)};
