@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>html,body{margin:0}[hidden]{display:none!important}</style>
+<script>
+(function(){
+  var E=window.Element&&Element.prototype;
+  if(E&&!E.replaceChildren){E.replaceChildren=function(){while(this.firstChild)this.removeChild(this.firstChild);
+    for(var i=0;i<arguments.length;i++){var a=arguments[i];this.appendChild(typeof a==='string'?document.createTextNode(a):a)}}}
+  var shown=false;
+  function banner(msg){if(shown)return;shown=true;
+    function put(){var d=document.createElement('div');
+      d.setAttribute('style','position:fixed;left:0;right:0;top:0;z-index:99999;background:#fff3cd;color:#5c4400;border-bottom:2px solid #c99a00;padding:12px 16px;font:15px/1.6 sans-serif');
+      d.textContent='うまく動いていません。この画面の写真をお父さんに送ってください。（'+msg+' ／ '+navigator.userAgent+'）';
+      document.body.appendChild(d)}
+    if(document.body)put();else document.addEventListener('DOMContentLoaded',put)}
+  window.addEventListener('error',function(e){banner((e&&e.message)||'エラー')});
+})();
+</script>
+<script src="../fclog.js"></script>
+</head>
+<body>
+<title>英検4級 実力チェック</title>
+<style>
+:root{--bg:#f6f4fa;--card:#fff;--ink:#251f3b;--sub:#6a6385;--line:#ddd7ea;--acc:#b8326a;--acc-soft:#f7e3ec;--ok:#17806a;--ok-soft:#dff3ec;--ng:#c0392b;--ng-soft:#fbe6e3}
+@media (prefers-color-scheme: dark){:root{--bg:#17141f;--card:#221d2e;--ink:#eeeaf7;--sub:#aaa3c2;--line:#3a3350;--acc:#ee7aa8;--acc-soft:#3d2333;--ok:#58c9a8;--ok-soft:#183a32;--ng:#f08a7c;--ng-soft:#41231f;color-scheme:dark}}
+body{background:var(--bg);color:var(--ink);font:16px/1.7 "Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;padding:0 16px}
+main{max-width:720px;margin:0 auto;padding:24px 0 60px;display:grid;gap:18px}
+h1{font-size:26px;margin:0;line-height:1.3}
+h1 small{display:block;font-size:14px;color:var(--sub);font-weight:500}
+h2{font-size:19px;margin:0}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:grid;gap:12px}
+.steps{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.small{font-size:14px;color:var(--sub);margin:0}
+button{font:inherit;font-weight:700;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-height:44px;cursor:pointer}
+button.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+.timer{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.clock{font:700 28px/1 ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;min-width:4.5em}
+.clock.over{color:var(--ng)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.q{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.q b{min-width:2.6em;font-variant-numeric:tabular-nums}
+.q button{padding:4px 0;min-height:36px;min-width:30px;border-radius:8px;font-size:15px}
+.q button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+.q.ok{background:var(--ok-soft);border-color:var(--ok)} .q.ng{background:var(--ng-soft);border-color:var(--ng)}
+.sub{font-weight:700;font-size:15px;margin:6px 0 0}
+audio{width:100%}
+.score{font:700 40px/1.1 ui-monospace,Menlo,Consolas,monospace}
+.score small{font-size:16px;color:var(--sub)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.msg{font-weight:700;color:var(--acc)}
+</style>
+<main>
+  <h1>英検4級 実力チェック<small>公式過去問 2025年度第3回（本番と同じ問題・本番と同じ時間）</small></h1>
+
+  <section>
+    <h2>やり方</h2>
+    <ol class="steps">
+      <li>紙の<b>問題冊子</b>を用意する（ない人は <a href="https://www.eiken.or.jp/eiken/exam/kakomon/2025-3-1ji-4kyu.pdf" target="_blank" rel="noopener">公式の問題PDF</a>）</li>
+      <li>「リーディング スタート」を押して、<b>35分</b>で(1)〜(35)を解く。答えは下の番号を押す</li>
+      <li>つづけて、リスニングの音声を第1部→第2部→第3部の順に流して、No.1〜30 を押す（とちゅうで止めない）</li>
+      <li>最後に「採点する」を押す。結果はお父さんにも届く</li>
+    </ol>
+    <p class="small">わからない問題も白紙にしないで、どれか1つ押す（本番もそう）。押した答えはこのパソコンに残るので、まちがえて閉じても大丈夫。</p>
+  </section>
+
+  <section>
+    <h2>リーディング（35分）</h2>
+    <div class="timer"><span class="clock" id="clock">35:00</span><button type="button" class="primary" id="startR">リーディング スタート</button><span class="small" id="tmsg"></span></div>
+    <p class="sub">大問1 (1)〜(15)</p><div class="grid" id="r1"></div>
+    <p class="sub">大問2 (16)〜(20)</p><div class="grid" id="r2"></div>
+    <p class="sub">大問3 (21)〜(25)　2番目と4番目の組み合わせの番号</p><div class="grid" id="r3"></div>
+    <p class="sub">大問4 (26)〜(35)</p><div class="grid" id="r4"></div>
+  </section>
+
+  <section>
+    <h2>リスニング（約30分）</h2>
+    <p class="small">音声は英検の公式サイトのもの。1問ずつ2回ずつ流れる。始まる前に問題冊子の選択肢を見ておく。</p>
+    <p class="sub">第1部 No.1〜10（絵を見て、応答を1〜3から選ぶ）</p>
+    <audio controls preload="none" src="https://media.eiken.or.jp/listening/grade_4/2025-30/4Q-part1.mp3"></audio><div class="grid" id="l1"></div>
+    <p class="sub">第2部 No.11〜20</p>
+    <audio controls preload="none" src="https://media.eiken.or.jp/listening/grade_4/2025-30/4Q-part2.mp3"></audio><div class="grid" id="l2"></div>
+    <p class="sub">第3部 No.21〜30</p>
+    <audio controls preload="none" src="https://media.eiken.or.jp/listening/grade_4/2025-30/4Q-part3.mp3"></audio><div class="grid" id="l3"></div>
+  </section>
+
+  <section>
+    <button type="button" class="primary" id="grade">採点する</button>
+    <p class="msg" id="gmsg" role="status"></p>
+    <div id="result" hidden>
+      <div class="score" id="score"></div>
+      <table><thead><tr><th>パート</th><th>正解</th></tr></thead><tbody id="parts"></tbody></table>
+      <p class="small" id="guide"></p>
+      <p class="small">×の問題は、問題冊子と <a href="https://www.eiken.or.jp/eiken/exam/kakomon/2025-3-1ji-4kyuscript.pdf" target="_blank" rel="noopener">リスニングの原稿（公式PDF）</a> で、正しい答えの理由を1つずつ確かめよう。下の表で、緑が○、赤が×（赤い問題の正しい番号はかっこの中）。</p>
+      <button type="button" id="again">答えを消して最初から</button>
+    </div>
+  </section>
+</main>
+<script>
+var KEY={"R": [1, 1, 3, 3, 4, 1, 3, 1, 3, 3, 4, 3, 4, 1, 3, 1, 4, 1, 4, 4, 1, 3, 4, 4, 2, 3, 2, 1, 3, 2, 3, 4, 3, 1, 2], "L": [3, 1, 1, 2, 3, 2, 2, 1, 2, 2, 1, 1, 4, 2, 1, 1, 2, 4, 4, 1, 2, 2, 3, 2, 4, 1, 2, 3, 3, 2]};
+var SK='kanako-kakomon-2025-3';
+var st={R:{},L:{},start:null,graded:false};
+try{var s=JSON.parse(localStorage.getItem(SK));if(s)st=s}catch(e){}
+function save(){try{localStorage.setItem(SK,JSON.stringify(st))}catch(e){}}
+function $(id){return document.getElementById(id)}
+function build(id,sec,from,to,n){
+  var g=$(id);
+  for(var i=from;i<=to;i++){
+    var d=document.createElement('div');d.className='q';d.id=sec+i;
+    var lab=sec==='R'?'('+i+')':'No.'+i;
+    var h='<b>'+lab+'</b>';
+    for(var c=1;c<=n;c++)h+='<button type="button" data-s="'+sec+'" data-i="'+i+'" data-c="'+c+'" aria-pressed="false">'+c+'</button>';
+    d.innerHTML=h;g.appendChild(d);
+  }
+}
+build('r1','R',1,15,4);build('r2','R',16,20,4);build('r3','R',21,25,4);build('r4','R',26,35,4);
+build('l1','L',1,10,3);build('l2','L',11,20,4);build('l3','L',21,30,4);
+function paint(){
+  var bs=document.querySelectorAll('.q button');
+  for(var k=0;k<bs.length;k++){var b=bs[k];b.setAttribute('aria-pressed',String(st[b.dataset.s][b.dataset.i]==b.dataset.c))}
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('.q button');if(!b||st.graded)return;
+  st[b.dataset.s][b.dataset.i]=Number(b.dataset.c);save();paint();
+});
+var tick=null;
+function clock(){
+  if(!st.start){$('clock').textContent='35:00';return}
+  var left=35*60-Math.floor((Date.now()-st.start)/1000);
+  var a=Math.abs(left),m=Math.floor(a/60),s=a%60;
+  $('clock').textContent=(left<0?'-':'')+m+':'+(s<10?'0':'')+s;
+  $('clock').className='clock'+(left<0?' over':'');
+  $('tmsg').textContent=left<0?'35分たちました。リーディングはここまで。リスニングへ':'';
+}
+function run(){clearInterval(tick);tick=setInterval(clock,1000);clock()}
+$('startR').onclick=function(){if(!st.start){st.start=Date.now();save()}run()};
+if(st.start)run();
+function count(sec,from,to){var ok=0;for(var i=from;i<=to;i++)if(st[sec][i]===KEY[sec][i-1])ok++;return ok}
+function blanks(){var n=0,i;for(i=1;i<=35;i++)if(!st.R[i])n++;for(i=1;i<=30;i++)if(!st.L[i])n++;return n}
+var armed=false;
+$('grade').onclick=function(){
+  var b=blanks();
+  if(b&&!armed&&!st.graded){armed=true;$('gmsg').textContent='まだ押していない問題が '+b+' 問あります。このまま採点するなら、もう一度「採点する」を押す';return}
+  st.graded=true;save();show(true);
+};
+function show(send){
+  var parts=[['大問1 語い・文法',count('R',1,15),15],['大問2 会話文',count('R',16,20),5],['大問3 並べかえ',count('R',21,25),5],['大問4 長文',count('R',26,35),10],
+             ['リスニング 第1部',count('L',1,10),10],['リスニング 第2部',count('L',11,20),10],['リスニング 第3部',count('L',21,30),10]];
+  var r=count('R',1,35),l=count('L',1,30);
+  $('score').innerHTML='リーディング '+r+'<small> / 35</small>　リスニング '+l+'<small> / 30</small>';
+  var h='';for(var k=0;k<parts.length;k++)h+='<tr><td>'+parts[k][0]+'</td><td class="n">'+parts[k][1]+' / '+parts[k][2]+'</td></tr>';
+  $('parts').innerHTML=h;
+  $('guide').textContent='めやす：それぞれ6割（リーディング21問・リスニング18問）なら合格圏、7割なら安心。本番の合否は英検CSEスコアで決まるので、これは目安。';
+  var miss=[],i,q;
+  for(i=1;i<=35;i++){q=$('R'+i);var okR=st.R[i]===KEY.R[i-1];q.className='q '+(okR?'ok':'ng');if(!okR){miss.push('('+i+')');q.querySelector('b').textContent='('+i+')→'+KEY.R[i-1]}}
+  for(i=1;i<=30;i++){q=$('L'+i);var okL=st.L[i]===KEY.L[i-1];q.className='q '+(okL?'ok':'ng');if(!okL){miss.push('No.'+i);q.querySelector('b').textContent='No.'+i+'→'+KEY.L[i-1]}}
+  $('result').hidden=false;$('gmsg').textContent='';clearInterval(tick);
+  if(send){
+    var used=st.start?Math.round((Date.now()-st.start)/60000):'';
+    try{window.fcLog&&window.fcLog({who:'加奈子',ev:'やり終えた',mode:'英検過去問 2025年度第3回（R '+r+'/35・L '+l+'/30'+(used!==''?'・開始から'+used+'分':'')+'）',right:r+l,n:65,
+      miss:parts.map(function(p){return p[0]+' '+p[1]+'/'+p[2]}).concat(['×：'+miss.join(' ')])})}catch(e){}
+  }
+}
+var again=false;
+$('again').onclick=function(){
+  if(!again){again=true;$('again').textContent='本当に消す（もう一度押す）';return}
+  st={R:{},L:{},start:null,graded:false};save();location.reload();
+};
+paint();
+if(st.graded)show(false);
+</script>
+
+</body>
+</html>
